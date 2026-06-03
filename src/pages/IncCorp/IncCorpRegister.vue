@@ -20,8 +20,8 @@
             <q-card-section>
               <div class="text-subtitle2">Datos del Pedido</div>
               <div class="row q-col-gutter-sm q-mt-xs">
-                <q-input v-model="pedido.CODCLI" label="Cód. Cliente" outlined dense readonly class="col-4" />
-                <q-input v-model="pedido.NOMCLI" label="Cliente" outlined dense readonly class="col-8" />
+                <q-input v-model="pedido.PHCLIE" label="Cód. Cliente" outlined dense readonly class="col-4" />
+                <q-input v-model="pedido.PHNOMC" label="Cliente" outlined dense readonly class="col-8" />
                 <q-input v-model="guia" label="Nro Guía" outlined dense readonly class="col-4" />
                 <q-input v-model="fecGuia" label="Fec. Guía" outlined dense readonly class="col-4" />
                 <q-input v-model="nroFact" label="Nro Factura" outlined dense readonly class="col-4" />
@@ -156,11 +156,10 @@ const registrando = ref(false)
 const vendedorDialog = ref(false)
 
 const itemColumns = [
-  { name: 'PDNUME', label: 'Item', field: 'PDNUME', align: 'center', sortable: true },
-  { name: 'PDCODI', label: 'Producto', field: 'PDCODI', sortable: true },
-  { name: 'PDDESC', label: 'Descripción', field: 'PDDESC' },
+  { name: 'PDARTI', label: 'Producto', field: 'PDARTI', sortable: true },
+  { name: 'ARTDES', label: 'Descripción', field: 'ARTDES' },
   { name: 'PDCANT', label: 'Cantidad', field: 'PDCANT', align: 'right' },
-  { name: 'PDPREC', label: 'Precio', field: 'PDPREC', align: 'right' },
+  { name: 'PDUNIT', label: 'Precio', field: 'PDUNIT', align: 'right' },
 ]
 
 const prodColumns = [
@@ -182,38 +181,39 @@ async function buscarPedido() {
     const result = await store.searchPedido(serie.value, correlativo.value)
     if (result.ok) {
       pedido.value = result.data
-      guia.value = result.data.PHGUI2 || ''
-      fecGuia.value = result.data.PHFEG2 || ''
-      nroFact.value = result.data.PHFACC || ''
-      fecFact.value = result.data.PHFEFC || ''
-      nroOC.value = result.data.PHNROC || ''
-      fecOC.value = result.data.PHFECC || ''
-      montoOC.value = result.data.PHIMP1 || ''
-      moneda.value = result.data.PHMONE || ''
+      guia.value = result.data.PDGUIA || ''
+      fecGuia.value = result.data.PDFECG || ''
+      nroFact.value = result.data.PDTDOC && result.data.PDFABO ? result.data.PDTDOC + '-' + result.data.PDFABO : (result.data.PDTDOC || result.data.PDFABO || '')
+      fecFact.value = result.data.PDFECF || ''
+      nroOC.value = result.data.PHREF1 || ''
+      fecOC.value = result.data.PHFEIN || ''
+      const monto = parseFloat(result.data.PHNVVA) || parseFloat(result.data.PHEVVA) || 0
+      montoOC.value = monto.toFixed(2)
+      moneda.value = result.data.PHMONE === 0 ? 'SOLES' : result.data.PHMONE === 1 ? 'DOLARES' : (result.data.PHMONE || '')
 
       const detalle = await store.searchPedidoDetalle(serie.value, correlativo.value)
       itemsPedido.value = detalle.data || []
     } else {
       $q.notify({ type: 'negative', message: result.error || 'Pedido no encontrado' })
     }
-  } catch (err) {
-    $q.notify({ type: 'negative', message: 'Error al buscar pedido' })
-  } finally {
+    } catch (err) {
+      $q.notify({ type: 'negative', message: 'Error: ' + (err.message || err) })
+    } finally {
     buscando.value = false
   }
 }
 
 function agregarProductos() {
   selectedItems.value.forEach(item => {
-    if (!productosSeleccionados.value.find(p => p.codprod === item.PDCODI)) {
+    if (!productosSeleccionados.value.find(p => p.codprod === item.PDARTI)) {
       productosSeleccionados.value.push({
-        codprod: item.PDCODI,
-        artabc: item.PDABC1 || '',
-        artmar: item.PDMARC || '',
-        precprod: item.PDPREC || 0,
+        codprod: item.PDARTI,
+        artabc: item.ARTABC || '',
+        artmar: item.ARTMAR || '',
+        precprod: item.PDUNIT || 0,
         cantdev: item.PDCANT || 0,
         maxCant: item.PDCANT || 0,
-        artmed: item.PDMED1 || ''
+        artmed: item.ARTMED || ''
       })
     }
   })
@@ -238,8 +238,8 @@ function openVendedorDialog() {
 }
 
 function onVendedorSelected(vendedor) {
-  codVend.value = vendedor.AGCODI
-  nomVend.value = vendedor.AGNOMB
+  codVend.value = vendedor.AGECVE
+  nomVend.value = vendedor.AGENOM
   canal.value = vendedor.CANAL || ''
 }
 
@@ -253,7 +253,7 @@ async function registrarIncidencia() {
     const cabecera = {
       canal: canal.value,
       codvend: codVend.value,
-      codcli: pedido.value.CODCLI,
+      codcli: pedido.value.PHCLIE,
       phpvta: serie.value,
       phnume: correlativo.value,
       fechaincid: fechaInc.value,

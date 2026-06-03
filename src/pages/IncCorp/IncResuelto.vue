@@ -5,7 +5,7 @@
     <q-card flat bordered v-if="rpta" class="q-mb-md">
       <q-card-section>
         <div class="row q-col-gutter-sm">
-          <q-input v-model="rpta.TIPINCDREAL" label="Tipo Incidencia Real" outlined dense readonly class="col-4" />
+          <q-input v-model="rpta.DESCTIPO" label="Tipo Cierre" outlined dense readonly class="col-4" />
           <q-input v-model="rpta.FECHCIERRE" label="Fecha Cierre" outlined dense readonly class="col-4" />
           <q-input v-model="rpta.USUARIOMOD" label="Cerrado por" outlined dense readonly class="col-4" />
           <q-input v-model="rpta.MOTCIERRE" label="Motivo" outlined dense readonly type="textarea" rows="3" class="col-12" />

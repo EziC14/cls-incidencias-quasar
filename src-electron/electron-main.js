@@ -8,7 +8,7 @@ const DB2_LIBRARY = 'CLS'
 const connectionPool = {}
 
 function buildConnStr(user, password) {
-  return `DRIVER={IBM i Access ODBC Driver};SYSTEM=${DB2_SYSTEM};UID=${user};PWD=${password};DefaultLibraries=${DB2_LIBRARY};Naming=0;`
+  return `DRIVER={IBM i Access ODBC Driver};SYSTEM=${DB2_SYSTEM};UID=${user};PWD=${password};DefaultLibraries=${DB2_LIBRARY};Naming=0;CCSID=1208;`
 }
 
 async function getConnection(user, password) {

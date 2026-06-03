@@ -22,11 +22,10 @@
             <q-card-section>
               <div class="text-subtitle2">Datos del Vale</div>
               <div class="row q-col-gutter-sm q-mt-xs">
-                <q-input :value="valeData.GUIA" label="Guía" outlined dense readonly class="col-4" />
-                <q-input :value="valeData.FECMOV" label="Fec. Movimiento" outlined dense readonly class="col-4" />
-                <q-input :value="valeData.ALMADEST" label="Almacén Destino" outlined dense readonly class="col-4" />
-                <q-input :value="valeData.VALETRANSF" label="Vale Transf." outlined dense readonly class="col-4" />
-                <q-input :value="valeData.USUARIO" label="Usuario" outlined dense readonly class="col-4" />
+                <q-input :value="valeData.MHREF3" label="Guía" outlined dense readonly class="col-4" />
+                <q-input :value="valeData.MHFECH" label="Fec. Movimiento" outlined dense readonly class="col-4" />
+                <q-input :value="valeData.MHHRE1" label="Almacén/Vale Transf." outlined dense readonly class="col-4" />
+                <q-input :value="valeData.MHUSER" label="Usuario" outlined dense readonly class="col-4" />
               </div>
             </q-card-section>
           </q-card>
@@ -70,7 +69,7 @@
       <template v-slot:after>
         <div class="q-pa-sm" style="height: 100%">
           <div class="text-subtitle2 q-mb-sm">Items del Vale</div>
-          <q-table :rows="itemsVale" :columns="itemColumns" row-key="MDNUDO" dense flat bordered
+          <q-table :rows="itemsVale" :columns="itemColumns" row-key="MDCOAR" dense flat bordered
             selection="multiple" v-model:selected="selectedItems"
             style="height: 35%; overflow-y: auto" />
 
@@ -140,10 +139,9 @@ const registrando = ref(false)
 const clienteDialog = ref(false)
 
 const itemColumns = [
-  { name: 'MDNUDO', label: 'Item', field: 'MDNUDO', align: 'center' },
-  { name: 'MDCODI', label: 'Producto', field: 'MDCODI' },
-  { name: 'MDDESC', label: 'Descripción', field: 'MDDESC' },
-  { name: 'MDCANT', label: 'Cantidad', field: 'MDCANT', align: 'right' },
+  { name: 'MDCOAR', label: 'Producto', field: 'MDCOAR' },
+  { name: 'ARTDES', label: 'Descripción', field: 'ARTDES' },
+  { name: 'MDCANR', label: 'Cantidad', field: 'MDCANR', align: 'right' },
 ]
 
 const prodColumns = [
@@ -168,8 +166,8 @@ async function buscarVale() {
     } else {
       $q.notify({ type: 'negative', message: 'Vale no encontrado' })
     }
-  } catch (err) {
-    $q.notify({ type: 'negative', message: 'Error al buscar vale' })
+    } catch (err) {
+      $q.notify({ type: 'negative', message: 'Error: ' + (err.message || err) })
   } finally {
     buscando.value = false
   }
@@ -177,13 +175,13 @@ async function buscarVale() {
 
 function agregarProductos() {
   selectedItems.value.forEach(item => {
-    if (!productosSeleccionados.value.find(p => p.codprod === item.MDCODI)) {
+    if (!productosSeleccionados.value.find(p => p.codprod === item.MDCOAR)) {
       productosSeleccionados.value.push({
-        codprod: item.MDCODI,
-        artmed: item.MDMED1 || '',
-        precprod: item.MDPREC || 0,
-        cantdev: item.MDCANT || 0,
-        maxCant: item.MDCANT || 0,
+        codprod: item.MDCOAR,
+        artmed: item.MDUMER || '',
+        precprod: item.MDCUNA || 0,
+        cantdev: item.MDCANR || 0,
+        maxCant: item.MDCANR || 0,
       })
     }
   })
@@ -208,8 +206,8 @@ function openClienteDialog() {
 }
 
 function onClienteSelected(cliente) {
-  codCli.value = cliente.CLCODI
-  nomCli.value = cliente.CLNOMB
+  codCli.value = cliente.CLICVE
+  nomCli.value = cliente.CLINOM
 }
 
 async function registrarIncidencia() {
