@@ -1,0 +1,36 @@
+{
+  "name": "modulo-incidencias",
+  "version": "1.0.0",
+  "description": "Módulo de Incidencias - Quasar + Electron",
+  "productName": "Módulo Incidencias",
+  "author": "La Sirena",
+  "private": true,
+  "scripts": {
+    "dev": "quasar dev -m electron",
+    "dev:spa": "quasar dev",
+    "build": "quasar build -m electron",
+    "dev:api": "node api/server.js",
+    "start": "concurrently \"npm run dev:api\" \"quasar dev\""
+  },
+  "dependencies": {
+    "@quasar/extras": "^1.16.0",
+    "chart.js": "^4.4.0",
+    "exceljs": "^4.4.0",
+    "nodemailer": "^6.9.15",
+    "odbc": "^2.5.0",
+    "pinia": "^2.1.0",
+    "quasar": "^2.16.0",
+    "vue": "^3.4.0",
+    "vue-chartjs": "^5.3.0",
+    "vue-router": "^4.3.0"
+  },
+  "devDependencies": {
+    "@quasar/app-vite": "^2.0.0",
+    "autoprefixer": "^10.4.0",
+    "concurrently": "^8.2.0",
+    "electron": "^33.4.0",
+    "electron-builder": "^25.0.0",
+    "postcss": "^8.4.0"
+  }
+}
+

@@ -1,0 +1,21 @@
+body {
+  margin: 0;
+  font-family: 'Roboto', sans-serif;
+}
+
+.q-card {
+  border-radius: 8px;
+}
+
+.q-table th {
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.q-table td {
+  font-size: 0.8rem;
+}
+
+.splitter__panel {
+  overflow-y: auto;
+}
