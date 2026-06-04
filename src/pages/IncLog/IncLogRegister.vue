@@ -24,7 +24,7 @@
               <div class="text-subtitle2">Datos del Vale</div>
               <div class="row q-col-gutter-sm q-mt-xs">
                 <q-input :model-value="valeData.MHREF3" label="Guía" outlined dense readonly class="col-4" />
-                <q-input :model-value="valeData.MHFECH" label="Fec. Movimiento" outlined dense readonly class="col-4" />
+                <q-input :model-value="fmtFecha(valeData.MHFECH)" label="Fec. Movimiento" outlined dense readonly class="col-4" />
                 <q-input :model-value="valeData.MHHRE1" label="Almacén/Vale Transf." outlined dense readonly class="col-4" />
                 <q-input :model-value="valeData.MHUSER" label="Usuario" outlined dense readonly class="col-4" />
               </div>
@@ -109,6 +109,7 @@ import { ref, onMounted } from 'vue'
 import { useIncidentStore } from 'stores/incident'
 import { useAuthStore } from 'stores/auth'
 import { date, useQuasar } from 'quasar'
+import { fmtFecha } from 'src/helpers/format'
 import ClienteDialog from 'pages/Ayuda/ClienteDialog.vue'
 
 const $q = useQuasar()

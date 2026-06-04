@@ -31,7 +31,7 @@
               </div>
               <div class="col-12 col-sm-6 col-md-4">
                 <div class="text-caption text-grey-7 q-mb-xs">Fecha Incidencia</div>
-                <div class="text-body2 text-weight-medium">{{ incidencia.FECHAINCID || '—' }}</div>
+                <div class="text-body2 text-weight-medium">{{ fmtFecha(incidencia.FECHAINCID) }}</div>
               </div>
               <div class="col-12 col-sm-6 col-md-4">
                 <div class="text-caption text-grey-7 q-mb-xs">Usuario Crea</div>
@@ -97,7 +97,7 @@
               </div>
               <div class="col-6 col-sm-3">
                 <div class="text-caption text-grey-7 q-mb-xs">Fec. Guía</div>
-                <div class="text-body2 text-weight-medium">{{ incidencia.PDFECG || '—' }}</div>
+                <div class="text-body2 text-weight-medium">{{ fmtFecha(incidencia.PDFECG) }}</div>
               </div>
               <div class="col-6 col-sm-3">
                 <div class="text-caption text-grey-7 q-mb-xs">Factura</div>
@@ -105,7 +105,7 @@
               </div>
               <div class="col-6 col-sm-3">
                 <div class="text-caption text-grey-7 q-mb-xs">Fec. Fact.</div>
-                <div class="text-body2 text-weight-medium">{{ incidencia.PDFECF || '—' }}</div>
+                <div class="text-body2 text-weight-medium">{{ fmtFecha(incidencia.PDFECF) }}</div>
               </div>
               <div class="col-6 col-sm-3">
                 <div class="text-caption text-grey-7 q-mb-xs">OC</div>
@@ -113,7 +113,7 @@
               </div>
               <div class="col-6 col-sm-3">
                 <div class="text-caption text-grey-7 q-mb-xs">Fec. OC</div>
-                <div class="text-body2 text-weight-medium">{{ incidencia.PHFEIN || '—' }}</div>
+                <div class="text-body2 text-weight-medium">{{ fmtFecha(incidencia.PHFEIN) }}</div>
               </div>
               <div class="col-6 col-sm-4">
                 <div class="text-caption text-grey-7 q-mb-xs">Monto OC</div>
@@ -154,7 +154,7 @@
               </div>
               <div class="col-6 col-sm-4">
                 <div class="text-caption text-grey-7 q-mb-xs">Fec. Vale</div>
-                <div class="text-body2 text-weight-medium">{{ incidencia.MHFECH || '—' }}</div>
+                <div class="text-body2 text-weight-medium">{{ fmtFecha(incidencia.MHFECH) }}</div>
               </div>
             </div>
           </q-card-section>
@@ -265,6 +265,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useIncidentStore } from 'stores/incident'
 import { useQuasar } from 'quasar'
+import { fmtFecha } from 'src/helpers/format'
 import CierreDialog from './CierreDialog.vue'
 import InfoDialog from './InfoDialog.vue'
 

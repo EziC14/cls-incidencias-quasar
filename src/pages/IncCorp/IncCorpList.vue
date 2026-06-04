@@ -28,41 +28,49 @@
             </div>
           </q-card-section>
           <q-card-section class="q-pt-md">
-            <div class="row q-col-gutter-md">
-              <div class="col-12 col-sm-6 col-md-3">
-                <q-input v-model="filtros.nroIncd" label="Nro Incidencia" outlined dense />
+            <div class="row q-col-gutter-sm items-end">
+              <q-input v-model="filtros.nroIncd" label="Nro Incidencia" outlined dense class="col-4" hide-bottom />
+              <q-select v-model="filtros.estado" :options="estados" label="Estado" outlined dense class="col-3" clearable hide-bottom @update:model-value="buscar" />
+              <div class="col-3">
+                <div class="text-caption text-grey-7">&nbsp;</div>
+                <q-btn label="Buscar" color="primary" icon="mdi-magnify" unelevated @click="buscar" :loading="buscando" class="full-width" style="height: 40px" />
               </div>
-              <div class="col-12 col-sm-6 col-md-3">
-                <q-input v-model="filtros.codVend" label="Cód. Vendedor" outlined dense />
+              <div class="col-2">
+                <div class="text-caption text-grey-7">&nbsp;</div>
+                <q-btn label="Filtros" color="secondary" outline icon="mdi-cog" @click="showFiltros = true" class="full-width" style="height: 40px" />
               </div>
-              <div class="col-12 col-sm-6 col-md-3">
-                <q-input v-model="filtros.codCli" label="Cód. Cliente" outlined dense />
-              </div>
-              <div class="col-12 col-sm-6 col-md-3">
-                <q-select v-model="filtros.tipoInc" :options="store.tipos" option-value="IDTIPO" option-label="DESCTIPO" label="Tipo" outlined dense clearable emit-value map-options />
-              </div>
-              <div class="col-12 col-sm-6 col-md-3">
-                <q-select v-model="filtros.estado" :options="estados" label="Estado" outlined dense clearable emit-value map-options />
-              </div>
-              <div class="col-12 col-sm-6 col-md-3">
-                <q-select v-model="filtros.usuario" :options="store.usuarios" label="Usuario" outlined dense clearable />
-              </div>
-              <div class="col-12 col-sm-6 col-md-3">
-                <q-checkbox v-model="filtrarFecha" label="Filtrar por fecha" />
-              </div>
-              <div class="col-12 col-sm-6 col-md-3" v-if="filtrarFecha">
-                <div class="row q-col-gutter-sm">
-                  <q-input v-model="filtros.desde" label="Desde" outlined dense type="date" class="col-6" />
-                  <q-input v-model="filtros.hasta" label="Hasta" outlined dense type="date" class="col-6" />
-                </div>
-              </div>
-            </div>
-            <div class="row q-mt-md">
-              <q-btn label="Buscar" color="primary" icon="mdi-magnify" unelevated @click="buscar" :loading="buscando" class="q-mr-sm" />
-              <q-btn label="Pendientes" color="secondary" outline icon="mdi-format-list-bulleted" @click="mostrarPendientes" class="q-mr-sm" />
             </div>
           </q-card-section>
         </q-card>
+
+        <q-dialog v-model="showFiltros" persistent>
+          <q-card style="min-width: 600px; max-width: 700px">
+            <q-card-section class="bg-primary text-white q-py-sm">
+              <div class="row items-center">
+                <q-icon name="mdi-filter" size="sm" class="q-mr-sm" />
+                <span class="text-weight-bold">Filtros Avanzados</span>
+                <q-space />
+                <q-btn flat dense icon="mdi-close" v-close-popup />
+              </div>
+            </q-card-section>
+            <q-card-section class="q-pt-sm q-pb-md">
+              <div class="row q-col-gutter-sm items-end">
+                <q-input v-model="filtros.codVend" label="Cód. Vendedor" outlined dense class="col-4" hide-bottom />
+                <q-input v-model="filtros.codCli" label="Cód. Cliente" outlined dense class="col-4" hide-bottom />
+                <q-select v-model="filtros.tipoInc" :options="store.tipos" option-value="IDTIPO" option-label="DESCTIPO" label="Tipo" outlined dense class="col-4" clearable hide-bottom emit-value map-options />
+                <q-select v-model="filtros.usuario" :options="store.usuarios" label="Usuario" outlined dense class="col-4" clearable hide-bottom />
+                <q-input v-model="filtros.desde" label="Desde" outlined dense type="date" class="col-4" hide-bottom />
+                <q-input v-model="filtros.hasta" label="Hasta" outlined dense type="date" class="col-4" hide-bottom />
+              </div>
+            </q-card-section>
+            <q-card-section class="q-py-sm bg-grey-2">
+              <div class="row justify-end q-gutter-sm">
+                <q-btn label="Cancelar" flat v-close-popup />
+                <q-btn label="Aplicar" color="primary" unelevated @click="aplicarFiltros" />
+              </div>
+            </q-card-section>
+          </q-card>
+        </q-dialog>
 
         <q-card flat bordered>
           <q-card-section class="bg-grey-2">
@@ -107,8 +115,9 @@
                   </q-item-section>
                   <q-item-section side>
                     <div class="text-right">
-                      <div class="text-caption text-grey-7">{{ inc.FECHAINCID }}</div>
-                      <div class="text-caption text-weight-medium text-primary">{{ inc.TIPINCD }}</div>
+                      <div class="text-caption text-grey-7">{{ fmtFecha(inc.FECHAINCID) }}</div>
+                      <div class="text-caption text-grey-5">Creado: {{ fmtFecha(inc.FECHACREA) }}</div>
+                      <div class="text-caption text-weight-medium text-primary q-mt-xs">{{ inc.TIPINCD }}</div>
                     </div>
                   </q-item-section>
                 </q-item>
@@ -130,41 +139,33 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useIncidentStore } from 'stores/incident'
 import { useQuasar } from 'quasar'
+import { fmtFecha } from 'src/helpers/format'
+import { useIncidentStore } from 'stores/incident'
 
+const $q = useQuasar()
 const router = useRouter()
 const store = useIncidentStore()
-const $q = useQuasar()
 
-const incidencias = ref([])
 const pageLoading = ref(true)
+const incidencias = ref([])
 const buscando = ref(false)
-const filtrarFecha = ref(false)
-
-const filtros = ref({
-  nroIncd: '',
-  codVend: '',
-  codCli: '',
-  tipoInc: null,
-  estado: null,
-  usuario: null,
-  desde: '',
-  hasta: ''
-})
-
-const tieneFiltros = computed(() =>
-  filtros.value.nroIncd || filtros.value.codVend || filtros.value.codCli ||
-  filtros.value.tipoInc || filtros.value.estado || filtros.value.usuario
-)
-
+const showFiltros = ref(false)
+const filtros = ref({ nroIncd: '', codVend: '', codCli: '', tipoInc: null, estado: null, usuario: null, desde: '', hasta: '' })
 const estados = [
   { label: 'Pendiente', value: '22' },
   { label: 'Atendido', value: '21' },
   { label: 'Refacturado', value: '23' },
   { label: 'Pedido Anulado', value: '24' },
   { label: 'Emisión NC', value: '25' },
+  { label: 'Anulado', value: '99' },
 ]
+
+const tieneFiltros = computed(() =>
+  filtros.value.nroIncd || filtros.value.codVend || filtros.value.codCli ||
+  filtros.value.tipoInc || filtros.value.usuario ||
+  filtros.value.desde || filtros.value.hasta
+)
 
 function getEstadoColor(estado) {
   const colors = { '22': 'orange', '21': 'green', '23': 'blue', '24': 'red', '25': 'purple' }
@@ -176,14 +177,7 @@ function getEstadoLabel(estado) {
   return labels[estado] || estado
 }
 
-function limpiarFiltros() {
-  filtros.value = { nroIncd: '', codVend: '', codCli: '', tipoInc: null, estado: null, usuario: null, desde: '', hasta: '' }
-  filtrarFecha.value = false
-  buscar()
-}
-
 onMounted(async () => {
-  pageLoading.value = true
   await Promise.all([store.loadTipos(), store.loadUsuarios()])
   incidencias.value = await store.listarIncidencias({ estado: '22' })
   pageLoading.value = false
@@ -199,10 +193,8 @@ async function buscar() {
     if (filtros.value.tipoInc) params.tipoInc = filtros.value.tipoInc
     if (filtros.value.estado) params.estado = filtros.value.estado
     if (filtros.value.usuario) params.usuario = filtros.value.usuario
-    if (filtrarFecha.value && filtros.value.desde && filtros.value.hasta) {
-      params.desde = filtros.value.desde
-      params.hasta = filtros.value.hasta
-    }
+    if (filtros.value.desde) params.desde = filtros.value.desde
+    if (filtros.value.hasta) params.hasta = filtros.value.hasta
     incidencias.value = await store.listarIncidencias(params)
   } catch (err) {
     $q.notify({ type: 'negative', message: 'Error al buscar' })
@@ -211,13 +203,15 @@ async function buscar() {
   }
 }
 
-async function mostrarPendientes() {
-  buscando.value = true
-  try {
-    incidencias.value = await store.listarIncidencias({ estado: '22' })
-  } finally {
-    buscando.value = false
-  }
+function aplicarFiltros() {
+  showFiltros.value = false
+  buscar()
+}
+
+function limpiarFiltros() {
+  filtros.value = { nroIncd: '', codVend: '', codCli: '', tipoInc: null, estado: null, usuario: null, desde: '', hasta: '' }
+  showFiltros.value = false
+  buscar()
 }
 
 function abrirDetalle(inc) {

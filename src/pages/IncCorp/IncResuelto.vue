@@ -7,7 +7,7 @@
       <q-card-section>
         <div class="row q-col-gutter-sm">
           <q-input v-model="rpta.DESCTIPO" label="Tipo Cierre" outlined dense readonly class="col-4" />
-          <q-input v-model="rpta.FECHCIERRE" label="Fecha Cierre" outlined dense readonly class="col-4" />
+          <q-input :model-value="fmtFecha(rpta.FECHCIERRE)" label="Fecha Cierre" outlined dense readonly class="col-4" />
           <q-input v-model="rpta.USUARIOMOD" label="Cerrado por" outlined dense readonly class="col-4" />
           <q-input v-model="rpta.MOTCIERRE" label="Motivo" outlined dense readonly type="textarea" rows="3" class="col-12" />
         </div>
@@ -26,6 +26,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useIncidentStore } from 'stores/incident'
 import { useQuasar } from 'quasar'
+import { fmtFecha } from 'src/helpers/format'
 
 const $q = useQuasar()
 

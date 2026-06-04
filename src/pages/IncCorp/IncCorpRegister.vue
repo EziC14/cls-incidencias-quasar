@@ -55,7 +55,7 @@
                   </div>
                   <div class="col-12 col-sm-6 col-md-4">
                     <div class="text-caption text-grey-7 q-mb-xs">Fec. Guía</div>
-                    <div class="text-body2 text-weight-medium">{{ fecGuia || '—' }}</div>
+                    <div class="text-body2 text-weight-medium">{{ fmtFecha(fecGuia) }}</div>
                   </div>
                   <div class="col-12 col-sm-6 col-md-4">
                     <div class="text-caption text-grey-7 q-mb-xs">Nro Factura</div>
@@ -63,7 +63,7 @@
                   </div>
                   <div class="col-12 col-sm-6 col-md-4">
                     <div class="text-caption text-grey-7 q-mb-xs">Fec. Factura</div>
-                    <div class="text-body2 text-weight-medium">{{ fecFact || '—' }}</div>
+                    <div class="text-body2 text-weight-medium">{{ fmtFecha(fecFact) }}</div>
                   </div>
                   <div class="col-12 col-sm-6 col-md-4">
                     <div class="text-caption text-grey-7 q-mb-xs">Nro OC</div>
@@ -71,7 +71,7 @@
                   </div>
                   <div class="col-12 col-sm-6 col-md-4">
                     <div class="text-caption text-grey-7 q-mb-xs">Fec. OC</div>
-                    <div class="text-body2 text-weight-medium">{{ fecOC || '—' }}</div>
+                    <div class="text-body2 text-weight-medium">{{ fmtFecha(fecOC) }}</div>
                   </div>
                   <div class="col-12 col-sm-6 col-md-4">
                     <div class="text-caption text-grey-7 q-mb-xs">Monto OC</div>
@@ -89,7 +89,7 @@
               <q-card-section class="bg-primary text-white q-py-sm">
                 <div class="row items-center">
                   <q-icon name="mdi-format-list-bulleted" size="sm" class="q-mr-sm" />
-                  <span class="text-weight-bold">Tipo de Incidencia</span>
+                  <span class="text-weight-bold">Datos de Incidencia</span>
                 </div>
               </q-card-section>
               <q-card-section class="q-pt-sm q-pb-md">
@@ -110,16 +110,16 @@
                     <div class="text-caption text-grey-7 q-mb-xs">Canal</div>
                     <q-input v-model="canal" outlined dense :readonly="!modVendedor" hide-bottom />
                   </div>
-                  <div class="col-12 col-sm-6 col-md-3">
-                    <div class="text-caption text-grey-7 q-mb-xs">Fecha Incidencia</div>
-                    <q-input v-model="fechaInc" outlined dense type="date" hide-bottom />
+                  <div class="col-12 col-sm-6 col-md-3 flex items-center q-mt-md">
+                    <q-checkbox v-model="modVendedor" label="Modificar Vendedor" dense />
                   </div>
                   <div class="col-12 col-sm-6 col-md-8">
                     <div class="text-caption text-grey-7 q-mb-xs">Tipo Incidencia</div>
                     <q-select v-model="tipoIncidencia" :options="store.tipos" option-value="IDTIPO" option-label="DESCTIPO" outlined dense hide-bottom />
                   </div>
                   <div class="col-12 col-sm-6 col-md-4">
-                    <q-checkbox v-model="modVendedor" label="Modificar Vendedor" dense class="q-mt-md" />
+                    <div class="text-caption text-grey-7 q-mb-xs">Fecha Incidencia</div>
+                    <q-input v-model="fechaInc" outlined dense type="date" hide-bottom />
                   </div>
                 </div>
               </q-card-section>
@@ -176,7 +176,7 @@
                   <q-icon name="mdi-package" size="sm" class="q-mr-sm" />
                   <span class="text-weight-bold">Items del Pedido ({{ itemsPedido.length }})</span>
                   <q-space />
-                  <q-btn label="Agregar" color="white" outline dense @click="agregarProductos" :disable="selectedItems.length === 0" icon="mdi-arrow-right" v-if="selectedItems.length > 0" />
+                  <q-btn label="Agregar" color="white" outline dense @click="agregarProductos" :disable="selectedItems.length === 0" icon="mdi-arrow-right" />
                 </div>
               </q-card-section>
               <q-scroll-area style="flex: 1">
@@ -213,7 +213,10 @@
               </q-card-section>
               <q-scroll-area style="flex: 1">
                 <q-list dense padding>
-                  <q-item v-for="(p, i) in productosSeleccionados" :key="i" clickable @click="eliminarProducto(p)" class="q-my-xs" :class="i % 2 === 0 ? 'bg-grey-1' : ''">
+                  <q-item v-for="(p, i) in productosSeleccionados" :key="i" class="q-my-xs" :class="i % 2 === 0 ? 'bg-grey-1' : ''">
+                    <q-item-section side>
+                      <q-btn flat dense round icon="mdi-close" size="xs" color="negative" @click="eliminarProducto(p)" />
+                    </q-item-section>
                     <q-item-section side>
                       <q-badge rounded color="primary" class="q-px-sm">{{ i + 1 }}</q-badge>
                     </q-item-section>
@@ -260,6 +263,7 @@ import { ref, onMounted } from 'vue'
 import { useIncidentStore } from 'stores/incident'
 import { useAuthStore } from 'stores/auth'
 import { date, useQuasar } from 'quasar'
+import { fmtFecha } from 'src/helpers/format'
 import VendedorDialog from 'pages/Ayuda/VendedorDialog.vue'
 
 const $q = useQuasar()
