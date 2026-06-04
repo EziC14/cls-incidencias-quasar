@@ -1,18 +1,36 @@
 <template>
-  <q-dialog v-model="visible" maximized>
-    <q-card>
-      <q-card-section class="text-h6">Buscar Vendedor</q-card-section>
-      <q-card-section>
-        <div class="row q-col-gutter-sm q-mb-md">
-          <q-input v-model="codigo" label="Código" outlined dense class="col-4" @keyup.enter="buscar" />
-          <q-input v-model="nombre" label="Nombre" outlined dense class="col-4" @keyup.enter="buscar" />
-          <q-btn label="Buscar" color="primary" icon="mdi-magnify" @click="buscar" class="col-2" />
+  <q-dialog v-model="visible" persistent>
+    <q-card style="min-width: 700px; max-width: 800px">
+      <q-card-section class="bg-primary text-white q-py-sm">
+        <div class="row items-center">
+          <q-icon name="mdi-account-search" size="sm" class="q-mr-sm" />
+          <span class="text-weight-bold">Buscar Vendedor</span>
+          <q-space />
+          <q-btn flat dense icon="mdi-close" v-close-popup />
         </div>
-        <q-table :rows="vendedores" :columns="columns" row-key="AGECVE" dense flat bordered @row-click="seleccionar" />
       </q-card-section>
-      <q-card-actions align="right">
-        <q-btn label="Cerrar" v-close-popup />
-      </q-card-actions>
+      <q-card-section class="q-pt-sm q-pb-md">
+        <div class="row q-col-gutter-sm q-mb-md items-end">
+          <q-input v-model="codigo" label="Código" outlined dense class="col-4" @keyup.enter="buscar" hide-bottom />
+          <q-input v-model="nombre" label="Nombre" outlined dense class="col-3" @keyup.enter="buscar" hide-bottom />
+          <div class="col-3">
+            <div class="text-caption text-grey-7">&nbsp;</div>
+            <q-btn label="Buscar" color="primary" icon="mdi-magnify" @click="buscar" class="full-width" unelevated style="height: 40px" />
+          </div>
+          <div class="col-2">
+            <div class="text-caption text-grey-7">&nbsp;</div>
+            <q-btn label="Limpiar" outline color="grey-7" @click="limpiar" class="full-width" style="height: 40px" />
+          </div>
+        </div>
+        <q-table :rows="vendedores" :columns="columns" row-key="AGECVE" dense flat bordered
+          :rows-per-page-options="[10, 20, 50]" :loading="buscando"
+          @row-click="seleccionar"
+          no-data-label="Ingrese criterios de búsqueda">
+          <template v-slot:body-cell-AGECVE="props">
+            <q-td><span class="text-weight-medium">{{ props.value }}</span></q-td>
+          </template>
+        </q-table>
+      </q-card-section>
     </q-card>
   </q-dialog>
 </template>
@@ -32,12 +50,15 @@ watch(visible, (v) => { emit('update:modelValue', v) })
 const codigo = ref('')
 const nombre = ref('')
 const vendedores = ref([])
+const buscando = ref(false)
 const columns = [
-  { name: 'AGECVE', label: 'Código', field: 'AGECVE', sortable: true },
+  { name: 'AGECVE', label: 'Código', field: 'AGECVE', sortable: true, align: 'left' },
   { name: 'AGENOM', label: 'Nombre', field: 'AGENOM', sortable: true },
+  { name: 'CANAL', label: 'Canal', field: 'CANAL', align: 'center' },
 ]
 
 async function buscar() {
+  buscando.value = true
   try {
     const q = codigo.value || nombre.value
     let sql = `SELECT AGECVE, AGENOM, TBALF2 AS CANAL
@@ -47,6 +68,13 @@ async function buscar() {
     if (q) { sql += " WHERE (AGENOM LIKE ? OR AGECVE LIKE ?)"; params.push(`%${q}%`, `%${q}%`) }
     vendedores.value = await window.electronAPI.dbQuery(sql, params, auth.usuario, auth.clave)
   } catch {}
+  buscando.value = false
+}
+
+function limpiar() {
+  codigo.value = ''
+  nombre.value = ''
+  vendedores.value = []
 }
 
 function seleccionar(evt, row) {

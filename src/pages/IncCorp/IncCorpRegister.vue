@@ -1,115 +1,257 @@
 <template>
-  <div class="q-pa-md" style="position: relative; min-height: calc(100vh - 120px)">
+  <div class="q-pa-lg" style="max-width: 1400px; margin: 0 auto; position: relative; min-height: calc(100vh - 120px)">
     <q-inner-loading :showing="loading" color="primary" size="48px" label="Cargando..." label-class="text-primary q-mt-sm" />
-    <div class="text-h5 q-mb-md">Registrar Incidencia Corporativa</div>
-
-    <q-splitter v-model="splitterModel" style="height: calc(100vh - 180px)">
-      <template v-slot:before>
-        <div class="q-pa-sm">
-          <q-card flat bordered>
-            <q-card-section>
-              <div class="text-subtitle2 q-mb-sm">Búsqueda de Pedido</div>
-              <div class="row q-col-gutter-sm">
-                <q-input v-model="serie" label="Serie" outlined dense class="col-4" />
-                <q-input v-model="correlativo" label="Correlativo" outlined dense class="col-4" />
-                <q-btn label="Buscar" color="primary" icon="mdi-magnify" class="col-4" @click="buscarPedido" :loading="buscando" />
-              </div>
-            </q-card-section>
-          </q-card>
-
-          <q-card flat bordered class="q-mt-sm" v-if="pedido">
-            <q-card-section>
-              <div class="text-subtitle2">Datos del Pedido</div>
-              <div class="row q-col-gutter-sm q-mt-xs">
-                <q-input v-model="pedido.PHCLIE" label="Cód. Cliente" outlined dense readonly class="col-4" />
-                <q-input v-model="pedido.PHNOMC" label="Cliente" outlined dense readonly class="col-8" />
-                <q-input v-model="guia" label="Nro Guía" outlined dense readonly class="col-4" />
-                <q-input v-model="fecGuia" label="Fec. Guía" outlined dense readonly class="col-4" />
-                <q-input v-model="nroFact" label="Nro Factura" outlined dense readonly class="col-4" />
-                <q-input v-model="fecFact" label="Fec. Factura" outlined dense readonly class="col-4" />
-                <q-input v-model="nroOC" label="Nro OC" outlined dense readonly class="col-4" />
-                <q-input v-model="fecOC" label="Fec. OC" outlined dense readonly class="col-4" />
-                <q-input v-model="montoOC" label="Monto OC" outlined dense readonly class="col-4" />
-                <q-input v-model="moneda" label="Moneda" outlined dense readonly class="col-4" />
-              </div>
-            </q-card-section>
-          </q-card>
-
-          <q-card flat bordered class="q-mt-sm">
-            <q-card-section>
-              <div class="text-subtitle2">Tipo de Incidencia</div>
-              <div class="row q-col-gutter-sm q-mt-xs">
-                <q-input v-model="codVend" label="Cód. Vendedor" outlined dense class="col-4" :readonly="!modVendedor">
-                  <template v-slot:append>
-                    <q-btn v-if="modVendedor" dense flat icon="mdi-magnify" @click="openVendedorDialog" />
-                  </template>
-                </q-input>
-                <q-input v-model="nomVend" label="Vendedor" outlined dense :readonly="!modVendedor" class="col-8" />
-                <q-input v-model="canal" label="Canal" outlined dense :readonly="!modVendedor" class="col-4" />
-                <q-select v-model="tipoIncidencia" :options="store.tipos" option-value="IDTIPO" option-label="DESCTIPO" label="Tipo Incidencia" outlined dense class="col-8" />
-                <q-input v-model="fechaInc" label="Fecha Incidencia" outlined dense type="date" class="col-4" />
-                <q-checkbox v-model="modVendedor" label="Modificar Vendedor" class="col-4" />
-              </div>
-            </q-card-section>
-          </q-card>
-
-          <q-card flat bordered class="q-mt-sm">
-            <q-card-section>
-              <div class="text-subtitle2">Contacto</div>
-              <div class="row q-col-gutter-sm q-mt-xs">
-                <q-input v-model="nomContacto" label="Nombre Contacto" outlined dense class="col-4" />
-                <q-input v-model="dirContacto" label="Dirección" outlined dense class="col-4" />
-                <q-input v-model="tlfContacto" label="Teléfono" outlined dense class="col-4" />
-                <q-input v-model="emailContacto" label="Email" outlined dense class="col-12" />
-              </div>
-            </q-card-section>
-          </q-card>
-
-          <q-card flat bordered class="q-mt-sm">
-            <q-card-section>
-              <div class="text-subtitle2">Motivo</div>
-              <q-input v-model="motivo" label="Motivo / Comentario" outlined dense type="textarea" rows="3" />
-            </q-card-section>
-          </q-card>
+    <template v-if="!loading">
+      <div class="row items-center q-mb-sm">
+        <q-btn flat round icon="mdi-arrow-left" @click="$router.back()" class="q-mr-xs" dense />
+        <div>
+          <div class="text-h6 text-weight-bold">Registrar Incidencia Corporativa</div>
+          <div class="text-caption text-grey-7">Nuevo registro de incidencia</div>
         </div>
-      </template>
+      </div>
 
-      <template v-slot:after>
-        <div class="q-pa-sm" style="height: 100%">
-          <div class="text-subtitle2 q-mb-sm">Items del Pedido</div>
-          <q-table :rows="itemsPedido" :columns="itemColumns" row-key="PDARTI" dense flat bordered
-            :rows-per-page-options="[10, 20, 50]" selection="multiple" v-model:selected="selectedItems"
-            style="height: 35%; overflow-y: auto" />
+      <q-splitter v-model="splitterModel" style="height: calc(100vh - 180px)">
+        <template v-slot:before>
+          <div class="q-pa-sm">
+            <q-card flat bordered class="q-mb-sm">
+              <q-card-section class="bg-primary text-white q-py-sm">
+                <div class="row items-center">
+                  <q-icon name="mdi-magnify" size="sm" class="q-mr-sm" />
+                  <span class="text-weight-bold">Búsqueda de Pedido</span>
+                </div>
+              </q-card-section>
+              <q-card-section class="q-pt-sm q-pb-md">
+                <div class="row q-col-gutter-sm items-end">
+                  <q-input v-model="serie" label="Serie" outlined dense class="col-4" hide-bottom />
+                  <q-input v-model="correlativo" label="Correlativo" outlined dense class="col-4" hide-bottom />
+                  <div class="col-4">
+                    <div class="text-caption text-grey-7">&nbsp;</div>
+                    <q-btn label="Buscar" color="primary" icon="mdi-magnify" @click="buscarPedido" :loading="buscando" unelevated class="full-width" style="height: 40px" />
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
 
-          <div class="row q-mt-sm q-mb-sm">
-            <q-btn label="Agregar Productos" color="primary" icon="mdi-arrow-right" @click="agregarProductos" :disable="selectedItems.length === 0" />
+            <q-card flat bordered class="q-mb-sm" v-if="pedido">
+              <q-card-section class="bg-primary text-white q-py-sm">
+                <div class="row items-center">
+                  <q-icon name="mdi-truck-delivery" size="sm" class="q-mr-sm" />
+                  <span class="text-weight-bold">Datos del Pedido</span>
+                </div>
+              </q-card-section>
+              <q-card-section class="q-pt-sm q-pb-md">
+                <div class="row q-col-gutter-sm">
+                  <div class="col-12 col-sm-6 col-md-4">
+                    <div class="text-caption text-grey-7 q-mb-xs">Cód. Cliente</div>
+                    <div class="text-body2 text-weight-medium">{{ pedido.PHCLIE }}</div>
+                  </div>
+                  <div class="col-12 col-sm-6 col-md-8">
+                    <div class="text-caption text-grey-7 q-mb-xs">Cliente</div>
+                    <div class="text-body2 text-weight-medium">{{ pedido.PHNOMC }}</div>
+                  </div>
+                  <div class="col-12 col-sm-6 col-md-4">
+                    <div class="text-caption text-grey-7 q-mb-xs">Nro Guía</div>
+                    <div class="text-body2 text-weight-medium">{{ guia || '—' }}</div>
+                  </div>
+                  <div class="col-12 col-sm-6 col-md-4">
+                    <div class="text-caption text-grey-7 q-mb-xs">Fec. Guía</div>
+                    <div class="text-body2 text-weight-medium">{{ fecGuia || '—' }}</div>
+                  </div>
+                  <div class="col-12 col-sm-6 col-md-4">
+                    <div class="text-caption text-grey-7 q-mb-xs">Nro Factura</div>
+                    <div class="text-body2 text-weight-medium">{{ nroFact || '—' }}</div>
+                  </div>
+                  <div class="col-12 col-sm-6 col-md-4">
+                    <div class="text-caption text-grey-7 q-mb-xs">Fec. Factura</div>
+                    <div class="text-body2 text-weight-medium">{{ fecFact || '—' }}</div>
+                  </div>
+                  <div class="col-12 col-sm-6 col-md-4">
+                    <div class="text-caption text-grey-7 q-mb-xs">Nro OC</div>
+                    <div class="text-body2 text-weight-medium">{{ nroOC || '—' }}</div>
+                  </div>
+                  <div class="col-12 col-sm-6 col-md-4">
+                    <div class="text-caption text-grey-7 q-mb-xs">Fec. OC</div>
+                    <div class="text-body2 text-weight-medium">{{ fecOC || '—' }}</div>
+                  </div>
+                  <div class="col-12 col-sm-6 col-md-4">
+                    <div class="text-caption text-grey-7 q-mb-xs">Monto OC</div>
+                    <div class="text-body2 text-weight-medium">S/ {{ montoOC || '0.00' }}</div>
+                  </div>
+                  <div class="col-12 col-sm-6 col-md-4">
+                    <div class="text-caption text-grey-7 q-mb-xs">Moneda</div>
+                    <div class="text-body2 text-weight-medium">{{ moneda || '—' }}</div>
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
+
+            <q-card flat bordered class="q-mb-sm">
+              <q-card-section class="bg-primary text-white q-py-sm">
+                <div class="row items-center">
+                  <q-icon name="mdi-format-list-bulleted" size="sm" class="q-mr-sm" />
+                  <span class="text-weight-bold">Tipo de Incidencia</span>
+                </div>
+              </q-card-section>
+              <q-card-section class="q-pt-sm q-pb-md">
+                <div class="row q-col-gutter-sm items-center">
+                  <div class="col-12 col-sm-6 col-md-3">
+                    <div class="text-caption text-grey-7 q-mb-xs">Cód. Vendedor</div>
+                    <q-input v-model="codVend" outlined dense :readonly="!modVendedor" hide-bottom>
+                      <template v-slot:append>
+                        <q-btn flat dense icon="mdi-magnify" @click="openVendedorDialog" />
+                      </template>
+                    </q-input>
+                  </div>
+                  <div class="col-12 col-sm-6 col-md-4">
+                    <div class="text-caption text-grey-7 q-mb-xs">Vendedor</div>
+                    <q-input v-model="nomVend" outlined dense :readonly="!modVendedor" hide-bottom />
+                  </div>
+                  <div class="col-12 col-sm-6 col-md-2">
+                    <div class="text-caption text-grey-7 q-mb-xs">Canal</div>
+                    <q-input v-model="canal" outlined dense :readonly="!modVendedor" hide-bottom />
+                  </div>
+                  <div class="col-12 col-sm-6 col-md-3">
+                    <div class="text-caption text-grey-7 q-mb-xs">Fecha Incidencia</div>
+                    <q-input v-model="fechaInc" outlined dense type="date" hide-bottom />
+                  </div>
+                  <div class="col-12 col-sm-6 col-md-8">
+                    <div class="text-caption text-grey-7 q-mb-xs">Tipo Incidencia</div>
+                    <q-select v-model="tipoIncidencia" :options="store.tipos" option-value="IDTIPO" option-label="DESCTIPO" outlined dense hide-bottom />
+                  </div>
+                  <div class="col-12 col-sm-6 col-md-4">
+                    <q-checkbox v-model="modVendedor" label="Modificar Vendedor" dense class="q-mt-md" />
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
+
+            <q-card flat bordered class="q-mb-sm">
+              <q-card-section class="bg-primary text-white q-py-sm">
+                <div class="row items-center">
+                  <q-icon name="mdi-phone" size="sm" class="q-mr-sm" />
+                  <span class="text-weight-bold">Contacto</span>
+                </div>
+              </q-card-section>
+              <q-card-section class="q-pt-sm q-pb-md">
+                <div class="row q-col-gutter-sm">
+                  <div class="col-12 col-sm-6 col-md-4">
+                    <div class="text-caption text-grey-7 q-mb-xs">Nombre Contacto</div>
+                    <q-input v-model="nomContacto" outlined dense hide-bottom />
+                  </div>
+                  <div class="col-12 col-sm-6 col-md-4">
+                    <div class="text-caption text-grey-7 q-mb-xs">Teléfono</div>
+                    <q-input v-model="tlfContacto" outlined dense hide-bottom />
+                  </div>
+                  <div class="col-12 col-sm-6 col-md-4">
+                    <div class="text-caption text-grey-7 q-mb-xs">Email</div>
+                    <q-input v-model="emailContacto" outlined dense hide-bottom />
+                  </div>
+                  <div class="col-12">
+                    <div class="text-caption text-grey-7 q-mb-xs">Dirección</div>
+                    <q-input v-model="dirContacto" outlined dense hide-bottom />
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
+
+            <q-card flat bordered>
+              <q-card-section class="bg-primary text-white q-py-sm">
+                <div class="row items-center">
+                  <q-icon name="mdi-comment-text" size="sm" class="q-mr-sm" />
+                  <span class="text-weight-bold">Motivo</span>
+                </div>
+              </q-card-section>
+              <q-card-section class="q-pt-sm q-pb-md">
+                <q-input v-model="motivo" outlined dense type="textarea" rows="3" hide-bottom />
+              </q-card-section>
+            </q-card>
           </div>
+        </template>
 
-          <div class="text-subtitle2 q-mb-sm">Productos Seleccionados</div>
-          <q-table :rows="productosSeleccionados" :columns="prodColumns" row-key="index" dense flat bordered
-            :rows-per-page-options="[10, 20, 50]"
-            @row-click="eliminarProducto"
-            style="height: 35%; overflow-y: auto">
-            <template v-slot:body-cell-cantdev="props">
-              <q-input dense v-model="props.row.cantdev" type="number" min="0" :max="props.row.maxCant"
-                @update:model-value="calcularMontoTotal" style="width: 80px" />
-            </template>
-          </q-table>
+        <template v-slot:after>
+          <div class="q-pa-sm" style="height: 100%; display: flex; flex-direction: column">
+            <q-card flat bordered class="q-mb-sm" style="flex: 1; display: flex; flex-direction: column">
+              <q-card-section class="bg-primary text-white q-py-sm">
+                <div class="row items-center">
+                  <q-icon name="mdi-package" size="sm" class="q-mr-sm" />
+                  <span class="text-weight-bold">Items del Pedido ({{ itemsPedido.length }})</span>
+                  <q-space />
+                  <q-btn label="Agregar" color="white" outline dense @click="agregarProductos" :disable="selectedItems.length === 0" icon="mdi-arrow-right" v-if="selectedItems.length > 0" />
+                </div>
+              </q-card-section>
+              <q-scroll-area style="flex: 1">
+                <q-list dense padding>
+                  <q-item v-for="(item, i) in itemsPedido" :key="i" clickable v-ripple :class="selectedItems.find(s => s.PDARTI === item.PDARTI) ? 'bg-primary text-white' : i % 2 === 0 ? 'bg-grey-1' : ''" @click="toggleItem(item)">
+                    <q-item-section side>
+                      <q-checkbox :model-value="!!selectedItems.find(s => s.PDARTI === item.PDARTI)" dense />
+                    </q-item-section>
+                    <q-item-section>
+                      <q-item-label class="text-weight-medium">{{ item.PDARTI }}</q-item-label>
+                      <q-item-label caption :class="selectedItems.find(s => s.PDARTI === item.PDARTI) ? 'text-white' : ''">{{ item.ARTDES }}</q-item-label>
+                    </q-item-section>
+                    <q-item-section side>
+                      <div class="text-right">
+                        <div class="text-weight-bold">{{ item.PDCANT }}</div>
+                        <div class="text-caption">{{ item.PDUNIT }}</div>
+                      </div>
+                    </q-item-section>
+                  </q-item>
+                  <div v-if="itemsPedido.length === 0" class="text-center text-grey-5 q-py-xl">
+                    <q-icon name="mdi-package-variant-closed" size="48px" />
+                    <div class="q-mt-sm">Busque un pedido para ver sus items</div>
+                  </div>
+                </q-list>
+              </q-scroll-area>
+            </q-card>
 
-          <div class="row items-center q-mt-sm">
-            <div class="text-subtitle2">Monto a Devolver:</div>
-            <q-input v-model="montoDev" outlined dense readonly class="q-ml-sm" style="width: 150px" prefix="S/ " />
+            <q-card flat bordered style="flex: 1; display: flex; flex-direction: column">
+              <q-card-section class="bg-primary text-white q-py-sm">
+                <div class="row items-center">
+                  <q-icon name="mdi-cart" size="sm" class="q-mr-sm" />
+                  <span class="text-weight-bold">Productos Seleccionados ({{ productosSeleccionados.length }})</span>
+                </div>
+              </q-card-section>
+              <q-scroll-area style="flex: 1">
+                <q-list dense padding>
+                  <q-item v-for="(p, i) in productosSeleccionados" :key="i" clickable @click="eliminarProducto(p)" class="q-my-xs" :class="i % 2 === 0 ? 'bg-grey-1' : ''">
+                    <q-item-section side>
+                      <q-badge rounded color="primary" class="q-px-sm">{{ i + 1 }}</q-badge>
+                    </q-item-section>
+                    <q-item-section>
+                      <q-item-label class="text-weight-medium">{{ p.codprod }}</q-item-label>
+                      <q-item-label caption>ABC: {{ p.artabc }} · Marca: {{ p.artmar }} · Medida: {{ p.artmed }}</q-item-label>
+                    </q-item-section>
+                    <q-item-section side>
+                      <div class="text-right">
+                        <div class="text-weight-bold text-primary">{{ p.precprod }}</div>
+                        <q-input dense v-model="p.cantdev" type="number" min="0" :max="p.maxCant" @update:model-value="calcularMontoTotal" style="width: 70px" class="q-mt-xs" outlined hide-bottom />
+                      </div>
+                    </q-item-section>
+                  </q-item>
+                  <div v-if="productosSeleccionados.length === 0" class="text-center text-grey-5 q-py-xl">
+                    <q-icon name="mdi-cart-off" size="48px" />
+                    <div class="q-mt-sm">Seleccione productos del pedido</div>
+                  </div>
+                </q-list>
+              </q-scroll-area>
+              <q-card-section class="bg-grey-2 q-py-sm">
+                <div class="row items-center justify-between">
+                  <span class="text-caption text-weight-medium">Monto a Devolver</span>
+                  <span class="text-weight-bold text-primary text-h6">S/ {{ montoDev.toFixed(2) }}</span>
+                </div>
+              </q-card-section>
+            </q-card>
+
+            <div class="row q-mt-sm justify-end q-gutter-sm">
+              <q-btn label="Nuevo" color="secondary" outline icon="mdi-refresh" @click="nuevo" />
+              <q-btn label="Registrar" color="positive" icon="mdi-check" unelevated @click="registrarIncidencia" :loading="registrando" />
+            </div>
           </div>
+        </template>
+      </q-splitter>
 
-          <div class="row q-mt-md">
-            <q-btn label="Registrar" color="positive" icon="mdi-check" class="q-mr-sm" @click="registrarIncidencia" :loading="registrando" />
-            <q-btn label="Nuevo" color="secondary" outline icon="mdi-refresh" @click="nuevo" />
-          </div>
-        </div>
-      </template>
-    </q-splitter>
-
-    <VendedorDialog v-model="vendedorDialog" @select="onVendedorSelected" />
+      <VendedorDialog v-model="vendedorDialog" @select="onVendedorSelected" />
+    </template>
   </div>
 </template>
 
@@ -157,22 +299,6 @@ const registrando = ref(false)
 const vendedorDialog = ref(false)
 const loading = ref(true)
 
-const itemColumns = [
-  { name: 'PDARTI', label: 'Producto', field: 'PDARTI', sortable: true },
-  { name: 'ARTDES', label: 'Descripción', field: 'ARTDES' },
-  { name: 'PDCANT', label: 'Cantidad', field: 'PDCANT', align: 'right' },
-  { name: 'PDUNIT', label: 'Precio', field: 'PDUNIT', align: 'right' },
-]
-
-const prodColumns = [
-  { name: 'codprod', label: 'Producto', field: 'codprod' },
-  { name: 'artabc', label: 'ABC', field: 'artabc', align: 'center' },
-  { name: 'artmar', label: 'Marca', field: 'artmar' },
-  { name: 'precprod', label: 'Precio', field: 'precprod', align: 'right' },
-  { name: 'cantdev', label: 'Cant. Dev', field: 'cantdev', align: 'center' },
-  { name: 'artmed', label: 'Medida', field: 'artmed', align: 'center' },
-]
-
 onMounted(async () => {
   await store.loadTipos()
   loading.value = false
@@ -213,10 +339,19 @@ async function buscarPedido() {
     } else {
       $q.notify({ type: 'negative', message: result.error || 'Pedido no encontrado' })
     }
-    } catch (err) {
-      $q.notify({ type: 'negative', message: 'Error: ' + (err.message || err) })
-    } finally {
+  } catch (err) {
+    $q.notify({ type: 'negative', message: 'Error: ' + (err.message || err) })
+  } finally {
     buscando.value = false
+  }
+}
+
+function toggleItem(item) {
+  const idx = selectedItems.value.findIndex(s => s.PDARTI === item.PDARTI)
+  if (idx >= 0) {
+    selectedItems.value.splice(idx, 1)
+  } else {
+    selectedItems.value.push(item)
   }
 }
 
@@ -238,7 +373,7 @@ function agregarProductos() {
   calcularMontoTotal()
 }
 
-function eliminarProducto(evt, row) {
+function eliminarProducto(row) {
   const idx = productosSeleccionados.value.findIndex(p => p.codprod === row.codprod)
   if (idx >= 0) {
     productosSeleccionados.value.splice(idx, 1)
