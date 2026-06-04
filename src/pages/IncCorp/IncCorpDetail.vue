@@ -106,6 +106,8 @@ const detailColumns = [
   { name: 'PRECPROD', label: 'Precio', field: 'PRECPROD', align: 'right' },
   { name: 'CANTDEV', label: 'Cant. Dev', field: 'CANTDEV', align: 'center' },
   { name: 'ARTMED', label: 'Medida', field: 'ARTMED', align: 'center' },
+  { name: 'VALE', label: 'Vale', field: 'VALE', align: 'center' },
+  { name: 'CANTVALE', label: 'Cant. Vale', field: 'CANTVALE', align: 'center' },
 ]
 
 onMounted(async () => {

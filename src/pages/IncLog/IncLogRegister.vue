@@ -22,10 +22,10 @@
             <q-card-section>
               <div class="text-subtitle2">Datos del Vale</div>
               <div class="row q-col-gutter-sm q-mt-xs">
-                <q-input :value="valeData.MHREF3" label="Guía" outlined dense readonly class="col-4" />
-                <q-input :value="valeData.MHFECH" label="Fec. Movimiento" outlined dense readonly class="col-4" />
-                <q-input :value="valeData.MHHRE1" label="Almacén/Vale Transf." outlined dense readonly class="col-4" />
-                <q-input :value="valeData.MHUSER" label="Usuario" outlined dense readonly class="col-4" />
+                <q-input :model-value="valeData.MHREF3" label="Guía" outlined dense readonly class="col-4" />
+                <q-input :model-value="valeData.MHFECH" label="Fec. Movimiento" outlined dense readonly class="col-4" />
+                <q-input :model-value="valeData.MHHRE1" label="Almacén/Vale Transf." outlined dense readonly class="col-4" />
+                <q-input :model-value="valeData.MHUSER" label="Usuario" outlined dense readonly class="col-4" />
               </div>
             </q-card-section>
           </q-card>

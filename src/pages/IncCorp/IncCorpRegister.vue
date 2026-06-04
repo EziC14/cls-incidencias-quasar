@@ -38,13 +38,13 @@
             <q-card-section>
               <div class="text-subtitle2">Tipo de Incidencia</div>
               <div class="row q-col-gutter-sm q-mt-xs">
-                <q-input v-model="codVend" label="Cód. Vendedor" outlined dense class="col-4" readonly>
+                <q-input v-model="codVend" label="Cód. Vendedor" outlined dense class="col-4" :readonly="!modVendedor">
                   <template v-slot:append>
-                    <q-btn dense flat icon="mdi-magnify" @click="openVendedorDialog" />
+                    <q-btn v-if="modVendedor" dense flat icon="mdi-magnify" @click="openVendedorDialog" />
                   </template>
                 </q-input>
-                <q-input v-model="nomVend" label="Vendedor" outlined dense readonly class="col-8" />
-                <q-input v-model="canal" label="Canal" outlined dense readonly class="col-4" />
+                <q-input v-model="nomVend" label="Vendedor" outlined dense :readonly="!modVendedor" class="col-8" />
+                <q-input v-model="canal" label="Canal" outlined dense :readonly="!modVendedor" class="col-4" />
                 <q-select v-model="tipoIncidencia" :options="store.tipos" option-value="IDTIPO" option-label="DESCTIPO" label="Tipo Incidencia" outlined dense class="col-8" />
                 <q-input v-model="fechaInc" label="Fecha Incidencia" outlined dense type="date" class="col-4" />
                 <q-checkbox v-model="modVendedor" label="Modificar Vendedor" class="col-4" />
@@ -76,7 +76,7 @@
       <template v-slot:after>
         <div class="q-pa-sm" style="height: 100%">
           <div class="text-subtitle2 q-mb-sm">Items del Pedido</div>
-          <q-table :rows="itemsPedido" :columns="itemColumns" row-key="PDNUME" dense flat bordered
+          <q-table :rows="itemsPedido" :columns="itemColumns" row-key="PDARTI" dense flat bordered
             :rows-per-page-options="[10, 20, 50]" selection="multiple" v-model:selected="selectedItems"
             style="height: 35%; overflow-y: auto" />
 
@@ -191,6 +191,20 @@ async function buscarPedido() {
       montoOC.value = monto.toFixed(2)
       moneda.value = result.data.PHMONE === 0 ? 'SOLES' : result.data.PHMONE === 1 ? 'DOLARES' : (result.data.PHMONE || '')
 
+      if (result.data.PHUSAP) {
+        codVend.value = result.data.PHUSAP
+        const vres = await store._query(
+          `SELECT AGECVE, AGENOM, TBALF2 AS CANAL
+           FROM SPEED400CS.TAGEN
+           LEFT JOIN SPEED400CS.TTABD ON TBALF1 = AGECVE AND TBIDEN = 'CNVEN'
+           WHERE AGECVE = ?`,
+          [result.data.PHUSAP])
+        if (vres.length > 0) {
+          nomVend.value = vres[0].AGENOM || ''
+          canal.value = vres[0].CANAL || ''
+        }
+      }
+
       const detalle = await store.searchPedidoDetalle(serie.value, correlativo.value)
       itemsPedido.value = detalle.data || []
     } else {
@@ -272,7 +286,7 @@ async function registrarIncidencia() {
       vale: ''
     }
     await store.registrarCabecera(cabecera)
-    const id = await store.obtenerId(serie.value, correlativo.value, pedido.value.CODCLI)
+    const id = await store.obtenerId(serie.value, correlativo.value, pedido.value.PHCLIE)
 
     for (let i = 0; i < productosSeleccionados.value.length; i++) {
       const p = productosSeleccionados.value[i]
