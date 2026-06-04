@@ -14,8 +14,7 @@ const routes = [
     component: () => import('layouts/MainLayout.vue'),
     meta: { requiresAuth: true },
     children: [
-      { path: '', redirect: '/menu' },
-      { path: 'menu', name: 'Menu', component: () => import('pages/MenuPage.vue') },
+      { path: '', redirect: '/inc-corp/listar' },
       { path: 'inc-corp/registrar', name: 'IncCorpRegister', component: () => import('pages/IncCorp/IncCorpRegister.vue') },
       { path: 'inc-corp/listar', name: 'IncCorpList', component: () => import('pages/IncCorp/IncCorpList.vue') },
       { path: 'inc-corp/detalle/:id', name: 'IncCorpDetail', component: () => import('pages/IncCorp/IncCorpDetail.vue') },
