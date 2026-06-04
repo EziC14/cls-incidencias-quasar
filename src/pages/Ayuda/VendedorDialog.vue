@@ -15,7 +15,7 @@
           <q-input v-model="nombre" label="Nombre" outlined dense class="col-3" @keyup.enter="buscar" hide-bottom />
           <div class="col-3">
             <div class="text-caption text-grey-7">&nbsp;</div>
-            <q-btn label="Buscar" color="primary" icon="mdi-magnify" @click="buscar" class="full-width" unelevated style="height: 40px" />
+            <q-btn color="primary" icon="mdi-magnify" @click="buscar" class="full-width" unelevated style="height: 40px" />
           </div>
           <div class="col-2">
             <div class="text-caption text-grey-7">&nbsp;</div>

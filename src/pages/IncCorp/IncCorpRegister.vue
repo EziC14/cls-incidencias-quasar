@@ -26,7 +26,7 @@
                   <q-input v-model="correlativo" label="Correlativo" outlined dense class="col-4" hide-bottom />
                   <div class="col-4">
                     <div class="text-caption text-grey-7">&nbsp;</div>
-                    <q-btn label="Buscar" color="primary" icon="mdi-magnify" @click="buscarPedido" :loading="buscando" unelevated class="full-width" style="height: 40px" />
+                    <q-btn color="primary" icon="mdi-magnify" @click="buscarPedido" :loading="buscando" unelevated class="full-width" style="height: 40px" />
                   </div>
                 </div>
               </q-card-section>

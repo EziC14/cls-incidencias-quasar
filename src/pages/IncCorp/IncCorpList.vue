@@ -33,7 +33,7 @@
               <q-select v-model="filtros.estado" :options="estados" label="Estado" outlined dense class="col-3" clearable hide-bottom @update:model-value="buscar" />
               <div class="col-3">
                 <div class="text-caption text-grey-7">&nbsp;</div>
-                <q-btn label="Buscar" color="primary" icon="mdi-magnify" unelevated @click="buscar" :loading="buscando" class="full-width" style="height: 40px" />
+                <q-btn color="primary" icon="mdi-magnify" unelevated @click="buscar" :loading="buscando" class="full-width" style="height: 40px" />
               </div>
               <div class="col-2">
                 <div class="text-caption text-grey-7">&nbsp;</div>
