@@ -1,5 +1,6 @@
 <template>
-  <div class="q-pa-lg" style="max-width: 1400px; margin: 0 auto">
+  <div class="q-pa-lg" style="max-width: 1400px; margin: 0 auto; position: relative; min-height: calc(100vh - 120px)">
+    <q-inner-loading :showing="loading" color="primary" size="48px" label="Cargando..." label-class="text-primary q-mt-sm" />
     <div class="row items-center q-mb-lg">
       <q-btn flat round icon="mdi-arrow-left" @click="$router.back()" class="q-mr-sm" />
       <div>

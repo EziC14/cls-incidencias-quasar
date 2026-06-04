@@ -1,5 +1,6 @@
 <template>
-  <div class="q-pa-md">
+  <div class="q-pa-md" style="position: relative; min-height: calc(100vh - 120px)">
+    <q-inner-loading :showing="loading" color="primary" size="48px" label="Cargando..." label-class="text-primary q-mt-sm" />
     <div class="text-h5 q-mb-md">Registrar Incidencia Corporativa</div>
 
     <q-splitter v-model="splitterModel" style="height: calc(100vh - 180px)">
@@ -154,6 +155,7 @@ const selectedItems = ref([])
 const productosSeleccionados = ref([])
 const registrando = ref(false)
 const vendedorDialog = ref(false)
+const loading = ref(true)
 
 const itemColumns = [
   { name: 'PDARTI', label: 'Producto', field: 'PDARTI', sortable: true },
@@ -171,8 +173,9 @@ const prodColumns = [
   { name: 'artmed', label: 'Medida', field: 'artmed', align: 'center' },
 ]
 
-onMounted(() => {
-  store.loadTipos()
+onMounted(async () => {
+  await store.loadTipos()
+  loading.value = false
 })
 
 async function buscarPedido() {

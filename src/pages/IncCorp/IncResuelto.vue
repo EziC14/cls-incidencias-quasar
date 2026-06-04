@@ -1,5 +1,6 @@
 <template>
-  <div class="q-pa-md">
+  <div class="q-pa-md" style="position: relative; min-height: calc(100vh - 120px)">
+    <q-inner-loading :showing="loading" color="primary" size="48px" label="Cargando..." label-class="text-primary q-mt-sm" />
     <div class="text-h5 q-mb-md">Incidencia Resuelta #{{ id }}</div>
 
     <q-card flat bordered v-if="rpta" class="q-mb-md">
@@ -33,12 +34,15 @@ const router = useRouter()
 const store = useIncidentStore()
 const id = route.params.id
 const rpta = ref(null)
+const loading = ref(true)
 
 onMounted(async () => {
   try {
     rpta.value = await store.visualizarRpta(id)
   } catch (err) {
     $q.notify({ type: 'negative', message: 'Error al cargar' })
+  } finally {
+    loading.value = false
   }
 })
 
