@@ -35,7 +35,7 @@
             exact
             clickable
             v-ripple
-            class="nav-item q-mb-xs"
+            class="nav-item q-mb-xs text-grey-3"
             style="border-radius: 8px"
             active-class="bg-primary text-white"
           >
