@@ -1,21 +1,21 @@
 <template>
   <div class="q-pa-lg" style="max-width: 1400px; margin: 0 auto; position: relative; min-height: calc(100vh - 120px)">
     <q-inner-loading :showing="loading" color="primary" size="48px" label="Cargando..." label-class="text-primary q-mt-sm" />
-    <div class="row items-center q-mb-lg">
-      <q-btn flat round icon="mdi-arrow-left" @click="$router.back()" class="q-mr-sm" />
+    <div class="row items-center q-mb-sm">
+      <q-btn flat round icon="mdi-arrow-left" @click="$router.back()" class="q-mr-xs" dense />
       <div>
-        <div class="text-h5 text-weight-bold">INCD-{{ String(incidencia?.ID || id).padStart(4, '0') }}</div>
+        <div class="text-h6 text-weight-bold">INCD-{{ String(incidencia?.ID || id).padStart(4, '0') }}</div>
         <div class="text-caption text-grey-7">Detalle de Incidencia Corporativa</div>
       </div>
       <q-space />
-      <q-btn v-if="incidencia?.ESTADOINCD === '22'" label="Cerrar Incidencia" color="positive" icon="mdi-check-circle" @click="openCierre" unelevated class="q-mr-sm" />
-      <q-btn label="Más Información" color="info" icon="mdi-information" @click="openInfo" flat class="q-mr-sm" />
+      <q-btn v-if="incidencia?.ESTADOINCD === '22'" label="Cerrar" color="positive" icon="mdi-check-circle" @click="openCierre" unelevated dense class="q-mr-sm" />
+      <q-btn label="Más Info" color="info" icon="mdi-information" @click="openInfo" flat dense />
     </div>
 
-    <div v-if="incidencia" class="row q-col-gutter-md">
+    <div v-if="incidencia" class="row q-col-gutter-sm">
       <div class="col-12 col-md-7">
         <q-card flat bordered class="q-mb-md">
-          <q-card-section class="bg-primary text-white">
+          <q-card-section class="bg-primary text-white q-py-sm">
             <div class="row items-center">
               <q-icon name="mdi-information" size="sm" class="q-mr-sm" />
               <span class="text-weight-bold">Información General</span>
@@ -23,175 +23,175 @@
               <q-badge :color="estadoColor" class="text-weight-medium q-px-sm q-py-xs">{{ incidencia.ESTADOINCD }}</q-badge>
             </div>
           </q-card-section>
-          <q-card-section class="q-pt-md">
-            <div class="row q-col-gutter-md">
+          <q-card-section class="q-pt-sm q-pb-md">
+            <div class="row q-col-gutter-sm">
               <div class="col-12 col-sm-6 col-md-4">
                 <div class="text-caption text-grey-7 q-mb-xs">Tipo Incidencia</div>
-                <div class="text-body1 text-weight-medium">{{ incidencia.DESCTIPO || '—' }}</div>
+                <div class="text-body2 text-weight-medium">{{ incidencia.DESCTIPO || '—' }}</div>
               </div>
               <div class="col-12 col-sm-6 col-md-4">
                 <div class="text-caption text-grey-7 q-mb-xs">Fecha Incidencia</div>
-                <div class="text-body1 text-weight-medium">{{ incidencia.FECHAINCID || '—' }}</div>
+                <div class="text-body2 text-weight-medium">{{ incidencia.FECHAINCID || '—' }}</div>
               </div>
               <div class="col-12 col-sm-6 col-md-4">
                 <div class="text-caption text-grey-7 q-mb-xs">Usuario Crea</div>
-                <div class="text-body1 text-weight-medium">{{ incidencia.USUARIOCREA || '—' }}</div>
+                <div class="text-body2 text-weight-medium">{{ incidencia.USUARIOCREA || '—' }}</div>
               </div>
             </div>
           </q-card-section>
         </q-card>
 
         <q-card flat bordered class="q-mb-md">
-          <q-card-section class="bg-primary text-white">
+          <q-card-section class="bg-primary text-white q-py-sm">
             <div class="row items-center">
               <q-icon name="mdi-account-group" size="sm" class="q-mr-sm" />
               <span class="text-weight-bold">Cliente / Vendedor</span>
             </div>
           </q-card-section>
-          <q-card-section class="q-pt-md">
-            <div class="row q-col-gutter-md">
+          <q-card-section class="q-pt-sm q-pb-md">
+            <div class="row q-col-gutter-sm">
               <div class="col-12 col-sm-6">
                 <div class="text-caption text-grey-7 q-mb-xs">Cód. Cliente</div>
-                <div class="text-body1 text-weight-medium">{{ incidencia.CODCLI || '—' }}</div>
+                <div class="text-body2 text-weight-medium">{{ incidencia.CODCLI || '—' }}</div>
               </div>
               <div class="col-12 col-sm-6">
                 <div class="text-caption text-grey-7 q-mb-xs">Cliente</div>
-                <div class="text-body1 text-weight-medium">{{ incidencia.CLINOM || '—' }}</div>
+                <div class="text-body2 text-weight-medium">{{ incidencia.CLINOM || '—' }}</div>
               </div>
               <div class="col-12 col-sm-4">
                 <div class="text-caption text-grey-7 q-mb-xs">Vendedor</div>
-                <div class="text-body1 text-weight-medium">{{ incidencia.CODVEND || '—' }}</div>
+                <div class="text-body2 text-weight-medium">{{ incidencia.CODVEND || '—' }}</div>
               </div>
               <div class="col-12 col-sm-4">
                 <div class="text-caption text-grey-7 q-mb-xs">Nom. Vendedor</div>
-                <div class="text-body1 text-weight-medium">{{ incidencia.AGENOM || '—' }}</div>
+                <div class="text-body2 text-weight-medium">{{ incidencia.AGENOM || '—' }}</div>
               </div>
               <div class="col-12 col-sm-4">
                 <div class="text-caption text-grey-7 q-mb-xs">Canal</div>
-                <div class="text-body1 text-weight-medium">{{ incidencia.CANAL || '—' }}</div>
+                <div class="text-body2 text-weight-medium">{{ incidencia.CANAL || '—' }}</div>
               </div>
             </div>
           </q-card-section>
         </q-card>
 
         <q-card flat bordered class="q-mb-md" v-if="incidencia.PHPVTA">
-          <q-card-section class="bg-primary text-white">
+          <q-card-section class="bg-primary text-white q-py-sm">
             <div class="row items-center">
               <q-icon name="mdi-truck-delivery" size="sm" class="q-mr-sm" />
               <span class="text-weight-bold">Pedido / Guía / Factura</span>
             </div>
           </q-card-section>
-          <q-card-section class="q-pt-md">
-            <div class="row q-col-gutter-md">
+          <q-card-section class="q-pt-sm q-pb-md">
+            <div class="row q-col-gutter-sm">
               <div class="col-6 col-sm-3">
                 <div class="text-caption text-grey-7 q-mb-xs">Serie</div>
-                <div class="text-body1 text-weight-medium">{{ incidencia.PHPVTA }}</div>
+                <div class="text-body2 text-weight-medium">{{ incidencia.PHPVTA }}</div>
               </div>
               <div class="col-6 col-sm-3">
                 <div class="text-caption text-grey-7 q-mb-xs">Pedido</div>
-                <div class="text-body1 text-weight-medium">{{ incidencia.PHNUME }}</div>
+                <div class="text-body2 text-weight-medium">{{ incidencia.PHNUME }}</div>
               </div>
               <div class="col-6 col-sm-3">
                 <div class="text-caption text-grey-7 q-mb-xs">Nro Guía</div>
-                <div class="text-body1 text-weight-medium">{{ incidencia.PDGUIA || '—' }}</div>
+                <div class="text-body2 text-weight-medium">{{ incidencia.PDGUIA || '—' }}</div>
               </div>
               <div class="col-6 col-sm-3">
                 <div class="text-caption text-grey-7 q-mb-xs">Fec. Guía</div>
-                <div class="text-body1 text-weight-medium">{{ incidencia.PDFECG || '—' }}</div>
+                <div class="text-body2 text-weight-medium">{{ incidencia.PDFECG || '—' }}</div>
               </div>
               <div class="col-6 col-sm-3">
                 <div class="text-caption text-grey-7 q-mb-xs">Factura</div>
-                <div class="text-body1 text-weight-medium">{{ fmtFactura }}</div>
+                <div class="text-body2 text-weight-medium">{{ fmtFactura }}</div>
               </div>
               <div class="col-6 col-sm-3">
                 <div class="text-caption text-grey-7 q-mb-xs">Fec. Fact.</div>
-                <div class="text-body1 text-weight-medium">{{ incidencia.PDFECF || '—' }}</div>
+                <div class="text-body2 text-weight-medium">{{ incidencia.PDFECF || '—' }}</div>
               </div>
               <div class="col-6 col-sm-3">
                 <div class="text-caption text-grey-7 q-mb-xs">OC</div>
-                <div class="text-body1 text-weight-medium">{{ incidencia.PHREF1 || '—' }}</div>
+                <div class="text-body2 text-weight-medium">{{ incidencia.PHREF1 || '—' }}</div>
               </div>
               <div class="col-6 col-sm-3">
                 <div class="text-caption text-grey-7 q-mb-xs">Fec. OC</div>
-                <div class="text-body1 text-weight-medium">{{ incidencia.PHFEIN || '—' }}</div>
+                <div class="text-body2 text-weight-medium">{{ incidencia.PHFEIN || '—' }}</div>
               </div>
               <div class="col-6 col-sm-4">
                 <div class="text-caption text-grey-7 q-mb-xs">Monto OC</div>
-                <div class="text-body1 text-weight-medium">{{ incidencia.PHNVVA || incidencia.PHEVVA || '—' }}</div>
+                <div class="text-body2 text-weight-medium">{{ incidencia.PHNVVA || incidencia.PHEVVA || '—' }}</div>
               </div>
             </div>
           </q-card-section>
         </q-card>
 
         <q-card flat bordered class="q-mb-md" v-if="incidencia.VALE">
-          <q-card-section class="bg-primary text-white">
+          <q-card-section class="bg-primary text-white q-py-sm">
             <div class="row items-center">
               <q-icon name="mdi-receipt" size="sm" class="q-mr-sm" />
               <span class="text-weight-bold">Vale</span>
             </div>
           </q-card-section>
-          <q-card-section class="q-pt-md">
-            <div class="row q-col-gutter-md">
+          <q-card-section class="q-pt-sm q-pb-md">
+            <div class="row q-col-gutter-sm">
               <div class="col-6 col-sm-4">
                 <div class="text-caption text-grey-7 q-mb-xs">Almacén</div>
-                <div class="text-body1 text-weight-medium">{{ incidencia.ALMACEN }}</div>
+                <div class="text-body2 text-weight-medium">{{ incidencia.ALMACEN }}</div>
               </div>
               <div class="col-6 col-sm-4">
                 <div class="text-caption text-grey-7 q-mb-xs">Vale</div>
-                <div class="text-body1 text-weight-medium">{{ incidencia.VALE }}</div>
+                <div class="text-body2 text-weight-medium">{{ incidencia.VALE }}</div>
               </div>
               <div class="col-6 col-sm-2">
                 <div class="text-caption text-grey-7 q-mb-xs">Ejercicio</div>
-                <div class="text-body1 text-weight-medium">{{ incidencia.EJERCICIO }}</div>
+                <div class="text-body2 text-weight-medium">{{ incidencia.EJERCICIO }}</div>
               </div>
               <div class="col-6 col-sm-2">
                 <div class="text-caption text-grey-7 q-mb-xs">Periodo</div>
-                <div class="text-body1 text-weight-medium">{{ incidencia.PERIODO }}</div>
+                <div class="text-body2 text-weight-medium">{{ incidencia.PERIODO }}</div>
               </div>
               <div class="col-6 col-sm-4">
                 <div class="text-caption text-grey-7 q-mb-xs">Guía Vale</div>
-                <div class="text-body1 text-weight-medium">{{ incidencia.MHREF3 || '—' }}</div>
+                <div class="text-body2 text-weight-medium">{{ incidencia.MHREF3 || '—' }}</div>
               </div>
               <div class="col-6 col-sm-4">
                 <div class="text-caption text-grey-7 q-mb-xs">Fec. Vale</div>
-                <div class="text-body1 text-weight-medium">{{ incidencia.MHFECH || '—' }}</div>
+                <div class="text-body2 text-weight-medium">{{ incidencia.MHFECH || '—' }}</div>
               </div>
             </div>
           </q-card-section>
         </q-card>
 
         <q-card flat bordered class="q-mb-md">
-          <q-card-section class="bg-primary text-white">
+          <q-card-section class="bg-primary text-white q-py-sm">
             <div class="row items-center">
               <q-icon name="mdi-phone" size="sm" class="q-mr-sm" />
               <span class="text-weight-bold">Contacto / Devolución</span>
             </div>
           </q-card-section>
-          <q-card-section class="q-pt-md">
-            <div class="row q-col-gutter-md">
+          <q-card-section class="q-pt-sm q-pb-md">
+            <div class="row q-col-gutter-sm">
               <div class="col-12 col-sm-6">
                 <div class="text-caption text-grey-7 q-mb-xs">Nombre Contacto</div>
-                <div class="text-body1 text-weight-medium">{{ incidencia.NOMCONTACTO || '—' }}</div>
+                <div class="text-body2 text-weight-medium">{{ incidencia.NOMCONTACTO || '—' }}</div>
               </div>
               <div class="col-6 col-sm-3">
                 <div class="text-caption text-grey-7 q-mb-xs">Teléfono</div>
-                <div class="text-body1 text-weight-medium">{{ incidencia.NUMTLFO || '—' }}</div>
+                <div class="text-body2 text-weight-medium">{{ incidencia.NUMTLFO || '—' }}</div>
               </div>
               <div class="col-6 col-sm-3">
                 <div class="text-caption text-grey-7 q-mb-xs">Monto Dev.</div>
-                <div class="text-body1 text-weight-medium">S/ {{ incidencia.MONTDEV || '0.00' }}</div>
+                <div class="text-body2 text-weight-medium">S/ {{ incidencia.MONTDEV || '0.00' }}</div>
               </div>
               <div class="col-12 col-sm-6">
                 <div class="text-caption text-grey-7 q-mb-xs">Email</div>
-                <div class="text-body1 text-weight-medium">{{ incidencia.EMAILCONT || '—' }}</div>
+                <div class="text-body2 text-weight-medium">{{ incidencia.EMAILCONT || '—' }}</div>
               </div>
               <div class="col-12 col-sm-6">
                 <div class="text-caption text-grey-7 q-mb-xs">Dirección</div>
-                <div class="text-body1 text-weight-medium">{{ incidencia.DIRECCONT || '—' }}</div>
+                <div class="text-body2 text-weight-medium">{{ incidencia.DIRECCONT || '—' }}</div>
               </div>
               <div class="col-12">
                 <div class="text-caption text-grey-7 q-mb-xs">Motivo</div>
-                <div class="text-body1 text-weight-medium">{{ incidencia.COMENTARIO || '—' }}</div>
+                <div class="text-body2 text-weight-medium">{{ incidencia.COMENTARIO || '—' }}</div>
               </div>
             </div>
           </q-card-section>
@@ -199,8 +199,8 @@
       </div>
 
       <div class="col-12 col-md-5">
-        <q-card flat bordered style="height: calc(100vh - 200px); display: flex; flex-direction: column">
-          <q-card-section class="bg-primary text-white">
+        <q-card flat bordered style="height: calc(100vh - 180px); display: flex; flex-direction: column">
+          <q-card-section class="bg-primary text-white q-py-sm">
             <div class="row items-center">
               <q-icon name="mdi-package-variant" size="sm" class="q-mr-sm" />
               <span class="text-weight-bold">Productos ({{ detalles.length }})</span>
@@ -240,9 +240,9 @@
               </div>
             </q-list>
           </q-scroll-area>
-          <q-card-section class="bg-grey-2">
+          <q-card-section class="bg-grey-2 q-py-sm">
             <div class="row items-center justify-between">
-              <span class="text-weight-medium">Total Productos</span>
+              <span class="text-caption text-weight-medium">Total Productos</span>
               <span class="text-weight-bold text-primary text-h6">{{ detalles.length }}</span>
             </div>
           </q-card-section>
