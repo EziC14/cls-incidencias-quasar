@@ -3,7 +3,6 @@
     <q-inner-loading :showing="loading" color="primary" size="48px" label="Cargando..." label-class="text-primary q-mt-sm" />
     <template v-if="!loading">
       <div class="row items-center q-mb-sm">
-        <q-btn flat round icon="mdi-arrow-left" @click="$router.back()" class="q-mr-xs" dense />
         <div>
           <div class="text-h6 text-weight-bold">Registrar Incidencia Logística</div>
           <div class="text-caption text-grey-7">Nuevo registro de incidencia logística</div>
