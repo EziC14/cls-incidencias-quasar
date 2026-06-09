@@ -78,7 +78,7 @@ export const useIncidentStore = defineStore('incident', {
 
     // ── PAGINADO ──────────────────────────────────────────────────────────
     async contarIncidencias(filtros) {
-      let sql = "SELECT COUNT(*) AS TOTAL FROM CLS.TINCIDENCIAH WHERE ESTADOINCD NOT IN ('3', '99')"
+      let sql = "SELECT COUNT(*) AS TOTAL FROM CLS.TINCIDENCIAH H WHERE H.ESTADOINCD NOT IN ('3', '99')"
       const params = []
       sql = this._aplicarFiltros(sql, params, filtros)
       const rows = await this._query(sql, params)
@@ -86,10 +86,10 @@ export const useIncidentStore = defineStore('incident', {
     },
 
     async listarIncidencias(filtros, pagina = 1, porPagina = 50) {
-      let sql = "SELECT * FROM CLS.TINCIDENCIAH WHERE ESTADOINCD NOT IN ('3', '99')"
+      let sql = "SELECT H.*, TP.DESCTIPO FROM CLS.TINCIDENCIAH H LEFT JOIN CLS.TINCIDTIPO TP ON H.TIPINCD = TP.IDTIPO WHERE H.ESTADOINCD NOT IN ('3', '99')"
       const params = []
       sql = this._aplicarFiltros(sql, params, filtros)
-      sql += ' ORDER BY ID DESC'
+      sql += ' ORDER BY H.ID DESC'
 
       // DB2/AS400 paginación con FETCH FIRST + OFFSET (requiere DB2 v9.7+)
       const offset = (pagina - 1) * porPagina
@@ -99,21 +99,16 @@ export const useIncidentStore = defineStore('incident', {
     },
 
     _aplicarFiltros(sql, params, filtros) {
-      if (filtros.nroIncd)  { sql += ' AND ID = ?';           params.push(filtros.nroIncd) }
-      if (filtros.codVend)  { sql += ' AND CODVEND = ?';      params.push(filtros.codVend) }
-      if (filtros.codCli)   { sql += ' AND CODCLI = ?';       params.push(filtros.codCli) }
-      if (filtros.tipoInc)  { sql += ' AND TIPINCD = ?';      params.push(filtros.tipoInc) }
-      if (filtros.estado)   { sql += ' AND ESTADOINCD = ?';   params.push(filtros.estado) }
-      if (filtros.usuario)  { sql += ' AND USUARIOCREA = ?';  params.push(filtros.usuario) }
-      if (filtros.desde && filtros.hasta) {
-        sql += ' AND FECHAINCID >= ? AND FECHAINCID <= ?'
-        params.push(filtros.desde, filtros.hasta)
-      }
-      // Sin filtros → solo mes actual
-      const sinFiltros = !filtros.nroIncd && !filtros.codVend && !filtros.codCli &&
-                         !filtros.tipoInc && !filtros.estado && !filtros.usuario && !filtros.desde
+      if (filtros.nroIncd)  { sql += ' AND H.ID = ?';           params.push(filtros.nroIncd) }
+      if (filtros.codVend)  { sql += ' AND H.CODVEND = ?';      params.push(filtros.codVend) }
+      if (filtros.codCli)   { sql += ' AND H.CODCLI = ?';       params.push(filtros.codCli) }
+      if (filtros.tipoInc)  { sql += ' AND H.TIPINCD = ?';      params.push(filtros.tipoInc) }
+      if (filtros.estado)   { sql += ' AND H.ESTADOINCD = ?';   params.push(filtros.estado) }
+      if (filtros.usuario)  { sql += ' AND H.USUARIOCREA = ?';  params.push(filtros.usuario) }
+      if (filtros.desde && filtros.hasta) { sql += ' AND H.FECHAINCID >= ? AND H.FECHAINCID <= ?'; params.push(filtros.desde, filtros.hasta) }
+      const sinFiltros = !filtros.nroIncd && !filtros.codVend && !filtros.codCli && !filtros.tipoInc && !filtros.estado && !filtros.usuario && !filtros.desde
       if (sinFiltros) {
-        sql += " AND MONTH(FECHAINCID) = MONTH(CURRENT DATE) AND YEAR(FECHAINCID) = YEAR(CURRENT DATE)"
+        sql += " AND MONTH(H.FECHAINCID) = MONTH(CURRENT DATE) AND YEAR(H.FECHAINCID) = YEAR(CURRENT DATE)"
       }
       return sql
     },

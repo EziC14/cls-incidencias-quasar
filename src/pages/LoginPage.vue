@@ -5,7 +5,7 @@
         <div class="login-icon">
           <q-icon name="mdi-hexagon-multiple" size="28px" style="color: #ef4444" />
         </div>
-        <div class="login-title">MiApp</div>
+        <div class="login-title">Incidencia CLS</div>
         <div class="login-subtitle">Inicia sesión para continuar</div>
       </div>
 

@@ -8,8 +8,8 @@
         <div class="text-caption text-grey-7">Detalle de Incidencia Corporativa</div>
       </div>
       <q-space />
-      <q-btn v-if="incidencia?.ESTADOINCD === '22'" label="Cerrar" color="positive" icon="mdi-check-circle" @click="openCierre" unelevated dense class="q-mr-sm" />
-      <q-btn label="Más Info" color="info" icon="mdi-information" @click="openInfo" flat dense />
+      <q-btn v-if="incidencia?.ESTADOINCD === '22'" label="Cerrar" color="primary" icon="mdi-check-circle" @click="openCierre" unelevated class="q-mr-sm" style="height: 36px; border-radius: 8px" no-caps />
+      <q-btn label="Más Info" color="grey-8" icon="mdi-information-outline" @click="openInfo" flat class="q-mr-sm" style="height: 36px; border-radius: 8px" no-caps />
     </div>
 
     <div v-if="incidencia" class="row q-col-gutter-sm">
@@ -20,7 +20,7 @@
               <q-icon name="mdi-information" size="sm" class="q-mr-sm" />
               <span class="text-weight-bold">Información General</span>
               <q-space />
-              <q-badge :color="estadoColor" class="text-weight-medium q-px-sm q-py-xs">{{ incidencia.ESTADOINCD }}</q-badge>
+              <q-badge :color="estadoColor" class="text-weight-medium q-px-sm q-py-xs">{{ getEstadoLabel(incidencia.ESTADOINCD) }}</q-badge>
             </div>
           </q-card-section>
           <q-card-section class="q-pt-sm q-pb-md">
@@ -286,10 +286,23 @@ const fmtFactura = computed(() => {
   return d.PDTDOC && d.PDFABO ? `${d.PDTDOC}-${d.PDFABO}` : (d.PDTDOC || d.PDFABO || '—')
 })
 
+const estadoMap = {
+  '22': { label: 'Pendiente', color: 'orange' },
+  '21': { label: 'Atendido', color: 'green' },
+  '23': { label: 'Refacturado', color: 'blue' },
+  '24': { label: 'Pedido Anulado', color: 'red' },
+  '25': { label: 'Emisión NC', color: 'purple' },
+  '55': { label: 'Cerrado', color: 'green' },
+  '99': { label: 'Anulado', color: 'red' },
+}
+
 const estadoColor = computed(() => {
-  const map = { '22': 'orange', '55': 'green', '99': 'red' }
-  return map[incidencia.value?.ESTADOINCD] || 'grey'
+  return estadoMap[incidencia.value?.ESTADOINCD]?.color || 'grey'
 })
+
+function getEstadoLabel(estado) {
+  return estadoMap[estado]?.label || estado
+}
 
 onMounted(async () => {
   try {

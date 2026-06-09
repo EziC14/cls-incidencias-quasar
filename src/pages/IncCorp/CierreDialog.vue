@@ -1,21 +1,40 @@
 <template>
   <q-dialog v-model="visible" persistent>
-    <q-card style="min-width: 500px">
-      <q-card-section class="text-h6">Cerrar Incidencia</q-card-section>
-
-      <q-card-section class="q-gutter-md">
-        <q-select v-model="tipoInc" :options="store.tipos" option-value="IDTIPO" option-label="DESCTIPO"
-          label="Tipo Incidencia Real" outlined emit-value map-options />
-        <q-select v-model="tipoCierre" :options="store.tiposCierre" option-value="IDTIPO" option-label="DESCTIPO"
-          label="Tipo Cierre" outlined emit-value map-options />
-        <q-input v-model="motivo" label="Motivo de Cierre" outlined type="textarea" rows="3" />
-        <q-input v-model="fecha" label="Fecha de Cierre" outlined type="date" />
+    <q-card style="min-width: 520px; border-radius: 14px">
+      <q-card-section class="bg-primary text-white q-py-sm" style="border-radius: 14px 14px 0 0">
+        <div class="row items-center">
+          <q-icon name="mdi-check-circle" size="sm" class="q-mr-sm" />
+          <span class="text-weight-bold">Cerrar Incidencia</span>
+          <q-space />
+          <q-btn flat dense icon="mdi-close" v-close-popup />
+        </div>
       </q-card-section>
-
-      <q-card-actions align="right">
-        <q-btn label="Cancelar" v-close-popup />
-        <q-btn label="Guardar" color="primary" @click="guardar" :loading="guardando" />
-      </q-card-actions>
+      <q-card-section class="q-pt-md q-pb-sm">
+        <div class="row q-col-gutter-sm">
+          <div class="col-6">
+            <div class="text-caption text-grey-7 q-mb-xs">Tipo Incidencia Real</div>
+            <q-select v-model="tipoInc" :options="store.tipos" option-value="IDTIPO" option-label="DESCTIPO" outlined dense hide-bottom />
+          </div>
+          <div class="col-6">
+            <div class="text-caption text-grey-7 q-mb-xs">Fecha de Cierre</div>
+            <q-input v-model="fecha" outlined dense type="date" hide-bottom />
+          </div>
+        </div>
+        <div class="q-mt-sm">
+          <div class="text-caption text-grey-7 q-mb-xs">Tipo Cierre</div>
+          <q-select v-model="tipoCierre" :options="store.tiposCierre" option-value="IDTIPO" option-label="DESCTIPO" outlined dense clearable hide-bottom />
+        </div>
+        <div class="q-mt-sm">
+          <div class="text-caption text-grey-7 q-mb-xs">Motivo de Cierre</div>
+          <q-input v-model="motivo" outlined type="textarea" rows="3" dense hide-bottom />
+        </div>
+      </q-card-section>
+      <q-card-section class="bg-grey-2 q-py-sm" style="border-radius: 0 0 14px 14px">
+        <div class="row justify-end q-gutter-sm">
+          <q-btn label="Cancelar" flat v-close-popup style="border-radius: 8px" no-caps />
+          <q-btn label="Guardar" color="primary" unelevated @click="guardar" :loading="guardando" style="border-radius: 8px" no-caps />
+        </div>
+      </q-card-section>
     </q-card>
   </q-dialog>
 </template>

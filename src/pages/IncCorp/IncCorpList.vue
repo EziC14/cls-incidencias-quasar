@@ -153,7 +153,7 @@
                   <div class="text-right">
                     <div class="text-caption text-grey-7">{{ fmtFecha(inc.FECHAINCID) }}</div>
                     <div class="text-caption text-grey-5">Creado: {{ fmtFecha(inc.FECHACREA) }}</div>
-                    <div class="text-caption text-weight-medium text-primary q-mt-xs">{{ inc.TIPINCD }}</div>
+                    <div class="text-caption text-weight-medium text-primary q-mt-xs">{{ inc.DESCTIPO || inc.TIPINCD }}</div>
                   </div>
                 </q-item-section>
               </q-item>
