@@ -1,33 +1,27 @@
 <template>
-  <q-layout view="hHh Lpr lFf">
-    <q-header elevated class="bg-primary text-white" style="height: 48px">
-      <q-toolbar style="height: 48px">
-        <q-btn dense flat round icon="mdi-menu" class="q-mr-sm lt-md" @click="drawer = !drawer" />
-        <q-toolbar-title class="text-subtitle2">
-          <q-breadcrumbs active-color="white" style="font-size: 13px">
-            <q-breadcrumbs-el :label="breadcrumb" />
-          </q-breadcrumbs>
-        </q-toolbar-title>
-        <q-badge transparent color="white" text-color="primary" class="q-px-sm q-py-xs text-caption text-weight-medium">
-          {{ auth.usuario }}
-        </q-badge>
-        <q-btn dense flat round icon="mdi-logout" size="sm" @click="handleLogout">
-          <q-tooltip>Cerrar Sesión</q-tooltip>
-        </q-btn>
-      </q-toolbar>
-    </q-header>
+  <q-layout view="lLr Lpr lFf">
+    <q-drawer
+      v-model="drawer"
+      :mini="mini"
+      :width="200"
+      :mini-width="60"
+      :bordered="false"
+      class="sidebar-outer"
+      @mouseenter="mini = false"
+      @mouseleave="mini = true"
+    >
+      <div class="sidebar column full-height">
 
-    <q-drawer v-model="drawer" show-if-above :width="230" :breakpoint="768" bordered class="bg-dark">
-      <div class="column full-height">
-        <div class="q-pa-lg text-center">
-          <q-icon name="mdi-incidence" size="36px" class="text-primary q-mb-sm" />
-          <div class="text-white text-subtitle2 text-weight-bold">Incidencias</div>
-          <div class="text-grey-5 text-caption">Sistema de Gestión</div>
+        <!-- Brand -->
+        <div class="brand row items-center no-wrap" :class="mini ? 'justify-center' : 'q-px-lg'">
+          <q-icon name="mdi-hexagon-multiple" size="22px" style="color: #ef4444" />
+          <Transition name="fade">
+            <span v-if="!mini" class="brand-text q-ml-sm">MiApp</span>
+          </Transition>
         </div>
 
-        <q-separator dark />
-
-        <q-list class="q-pa-sm" style="flex: 1">
+        <!-- Nav -->
+        <q-list class="nav-list col">
           <q-item
             v-for="item in navItems"
             :key="item.to"
@@ -35,22 +29,48 @@
             exact
             clickable
             v-ripple
-            class="nav-item q-mb-xs text-grey-3"
-            style="border-radius: 8px"
-            active-class="bg-primary text-white"
+            class="nav-item"
+            active-class="nav-item--active"
           >
-            <q-item-section avatar class="q-mr-sm" style="min-width: 32px">
+            <div class="icon-wrap">
               <q-icon :name="item.icon" size="20px" />
-            </q-item-section>
-            <q-item-section>
-              <q-item-label class="text-weight-medium" style="font-size: 13.5px">{{ item.label }}</q-item-label>
-            </q-item-section>
+            </div>
+            <Transition name="fade">
+              <span v-if="!mini" class="item-label">{{ item.label }}</span>
+            </Transition>
           </q-item>
         </q-list>
 
-        <q-separator dark />
-        <div class="q-pa-sm text-center">
-          <q-badge outline color="grey-6" class="text-caption">v1.0.0</q-badge>
+        <!-- Divider -->
+        <div class="divider" />
+
+        <!-- Footer -->
+        <div class="footer">
+
+          <div class="footer-item" :class="mini ? 'justify-center' : ''">
+            <div class="icon-wrap">
+              <q-avatar size="26px" style="background: #ef4444; font-size: 25px; color: white">
+                {{ auth.usuario?.charAt(0)?.toUpperCase() }}
+              </q-avatar>
+            </div>
+            <Transition name="fade">
+              <span v-if="!mini" class="item-label">{{ auth.usuario }}</span>
+            </Transition>
+          </div>
+
+          <div
+            class="footer-item footer-item--logout"
+            :class="mini ? 'justify-center' : ''"
+            @click="handleLogout"
+          >
+            <div class="icon-wrap">
+              <q-icon name="mdi-logout" size="18px" />
+            </div>
+            <Transition name="fade">
+              <span v-if="!mini" class="item-label">Cerrar Sesión</span>
+            </Transition>
+          </div>
+
         </div>
       </div>
     </q-drawer>
@@ -62,31 +82,21 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from 'stores/auth'
 
 const router = useRouter()
-const route = useRoute()
 const auth = useAuthStore()
 
-const drawer = ref(false)
+const drawer = ref(true)
+const mini = ref(true)
 
 const navItems = [
   { icon: 'mdi-format-list-bulleted', label: 'Ver Incidencias', to: '/inc-corp/listar' },
-  { icon: 'mdi-plus-circle', label: 'Registrar ATC', to: '/inc-corp/registrar' },
-  { icon: 'mdi-truck', label: 'Registrar LGST', to: '/inc-log/registrar' },
+  { icon: 'mdi-plus-circle-outline', label: 'Registrar ATC', to: '/inc-corp/registrar' },
+  { icon: 'mdi-truck-outline', label: 'Registrar LGST', to: '/inc-log/registrar' },
 ]
-
-const breadcrumb = computed(() => {
-  const p = route.path
-  if (p.startsWith('/inc-corp/listar')) return 'Incidencias Corporativas / Listado'
-  if (p.startsWith('/inc-corp/registrar')) return 'Incidencias Corporativas / Registrar ATC'
-  if (p.startsWith('/inc-corp/detalle')) return 'Incidencias Corporativas / Detalle ATC'
-  if (p.startsWith('/inc-corp/resuelto')) return 'Incidencias Corporativas / Resolución ATC'
-  if (p.startsWith('/inc-log/registrar')) return 'Incidencias Logísticas / Registrar LGST'
-  return 'Incidencias'
-})
 
 function handleLogout() {
   auth.logout()
@@ -95,8 +105,115 @@ function handleLogout() {
 </script>
 
 <style lang="sass" scoped>
+// ── Quasar overrides ──────────────────────────
+:deep(.q-drawer)
+  background: transparent !important
+  border: none !important
+  box-shadow: none !important
+  overflow: hidden !important
+  transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important
+
+:deep(.q-drawer__content)
+  overflow: hidden !important
+  background: transparent !important
+
+// ── Sidebar principal ─────────────────────────
+.sidebar
+  width: 100%
+  height: 100%
+  background: #1c1c1e
+  overflow: hidden
+
+// ── Brand ─────────────────────────────────────
+.brand
+  height: 60px
+  flex-shrink: 0
+
+.brand-text
+  font-size: 15px
+  font-weight: 700
+  color: #ffffff
+  white-space: nowrap
+  letter-spacing: -0.2px
+
+// ── Nav ───────────────────────────────────────
+.nav-list
+  padding: 8px 0
+  display: flex
+  flex-direction: column
+
 .nav-item
-  transition: all 0.15s ease
-  &:hover:not(.bg-primary)
-    background: rgba(255, 255, 255, 0.08) !important
+  min-height: 46px
+  padding: 0 !important
+  display: flex !important
+  align-items: center !important
+  color: #8e8e93
+  border-radius: 0
+  transition: background 0.15s, color 0.15s
+
+  &:hover
+    background: rgba(255, 255, 255, 0.06) !important
+    color: #ffffff !important
+
+.nav-item--active
+  background: rgba(239, 68, 68, 0.15) !important
+  color: #ef4444 !important
+  border-right: 3px solid #ef4444
+
+// ── Icono wrapper: ancho = mini-width exacto ──
+// mini-width=60, sin márgenes → icon-wrap ocupa todo el ancho
+.icon-wrap
+  width: 60px
+  min-width: 60px
+  height: 46px
+  display: flex
+  align-items: center
+  justify-content: center
+  flex-shrink: 0
+
+// ── Label ─────────────────────────────────────
+.item-label
+  font-size: 13px
+  font-weight: 500
+  white-space: nowrap
+  color: inherit
+  padding-right: 16px
+
+// ── Divider ───────────────────────────────────
+.divider
+  height: 1px
+  background: rgba(255, 255, 255, 0.08)
+  margin: 4px 0
+
+// ── Footer ────────────────────────────────────
+.footer
+  padding: 8px 0 12px
+
+.footer-item
+  min-height: 44px
+  display: flex
+  align-items: center
+  cursor: default
+  color: #8e8e93
+  transition: background 0.15s, color 0.15s
+
+  &:hover
+    background: rgba(255, 255, 255, 0.05)
+    color: #ffffff
+
+.footer-item--logout
+  cursor: pointer
+
+  &:hover
+    background: rgba(239, 68, 68, 0.10) !important
+    color: #ef4444 !important
+
+// ── Fade ──────────────────────────────────────
+.fade-enter-active,
+.fade-leave-active
+  transition: opacity 0.12s ease
+
+.fade-enter-from,
+.fade-leave-to
+  opacity: 0
 </style>
