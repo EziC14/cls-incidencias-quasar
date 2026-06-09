@@ -1,36 +1,33 @@
 <template>
   <q-layout view="lLr Lpr lFf">
-    <q-drawer
-      v-model="drawer"
-      :mini="mini"
-      :width="200"
-      :mini-width="60"
-      :bordered="false"
-      class="sidebar-outer"
+    <aside
+      class="custom-sidebar"
+      :class="{ mini: mini, expanded: !mini }"
       @mouseenter="mini = false"
       @mouseleave="mini = true"
     >
-      <div class="sidebar column full-height">
+      <div class="sidebar-inner column full-height">
 
         <!-- Brand -->
-        <div class="brand row items-center no-wrap" :class="mini ? 'justify-center' : 'q-px-lg'">
-          <q-icon name="mdi-hexagon-multiple" size="22px" style="color: #ef4444" />
+        <div class="brand row items-center no-wrap">
+          <div class="icon-wrap">
+            <q-icon name="mdi-hexagon-multiple" size="22px" style="color: #ef4444" />
+          </div>
           <Transition name="fade">
-            <span v-if="!mini" class="brand-text q-ml-sm">MiApp</span>
+            <span v-if="!mini" class="brand-text q-ml-sm">Incidencia CLS</span>
           </Transition>
         </div>
 
+        <div class="divider" />
+
         <!-- Nav -->
-        <q-list class="nav-list col">
-          <q-item
+        <nav class="nav-list col">
+          <div
             v-for="item in navItems"
             :key="item.to"
-            :to="item.to"
-            exact
-            clickable
-            v-ripple
             class="nav-item"
-            active-class="nav-item--active"
+            :class="{ 'nav-item--active': isActive(item.to) }"
+            @click="$router.push(item.to)"
           >
             <div class="icon-wrap">
               <q-icon :name="item.icon" size="20px" />
@@ -38,16 +35,14 @@
             <Transition name="fade">
               <span v-if="!mini" class="item-label">{{ item.label }}</span>
             </Transition>
-          </q-item>
-        </q-list>
+          </div>
+        </nav>
 
-        <!-- Divider -->
         <div class="divider" />
 
         <!-- Footer -->
         <div class="footer">
-
-          <div class="footer-item" :class="mini ? 'justify-center' : ''">
+          <div class="footer-item">
             <div class="icon-wrap">
               <q-avatar size="26px" style="background: #ef4444; font-size: 25px; color: white">
                 {{ auth.usuario?.charAt(0)?.toUpperCase() }}
@@ -60,7 +55,6 @@
 
           <div
             class="footer-item footer-item--logout"
-            :class="mini ? 'justify-center' : ''"
             @click="handleLogout"
           >
             <div class="icon-wrap">
@@ -70,12 +64,12 @@
               <span v-if="!mini" class="item-label">Cerrar Sesión</span>
             </Transition>
           </div>
-
         </div>
-      </div>
-    </q-drawer>
 
-    <q-page-container>
+      </div>
+    </aside>
+
+    <q-page-container :style="{ marginLeft: mini ? '60px' : '200px' }">
       <router-view />
     </q-page-container>
   </q-layout>
@@ -83,13 +77,13 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from 'stores/auth'
 
 const router = useRouter()
+const route = useRoute()
 const auth = useAuthStore()
 
-const drawer = ref(true)
 const mini = ref(true)
 
 const navItems = [
@@ -98,6 +92,10 @@ const navItems = [
   { icon: 'mdi-truck-outline', label: 'Registrar LGST', to: '/inc-log/registrar' },
 ]
 
+function isActive(path) {
+  return route.path.startsWith(path)
+}
+
 function handleLogout() {
   auth.logout()
   router.push('/login')
@@ -105,26 +103,26 @@ function handleLogout() {
 </script>
 
 <style lang="sass" scoped>
-// ── Quasar overrides ──────────────────────────
-:deep(.q-drawer)
-  background: transparent !important
-  border: none !important
-  box-shadow: none !important
-  overflow: hidden !important
-  transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important
-
-:deep(.q-drawer__content)
-  overflow: hidden !important
-  background: transparent !important
-
-// ── Sidebar principal ─────────────────────────
-.sidebar
-  width: 100%
-  height: 100%
+.custom-sidebar
+  position: fixed
+  top: 0
+  left: 0
+  height: 100vh
+  z-index: 1000
   background: #1c1c1e
   overflow: hidden
+  transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1)
 
-// ── Brand ─────────────────────────────────────
+  &.mini
+    width: 60px
+
+  &.expanded
+    width: 200px
+
+.sidebar-inner
+  width: 100%
+  height: 100%
+
 .brand
   height: 60px
   flex-shrink: 0
@@ -136,19 +134,21 @@ function handleLogout() {
   white-space: nowrap
   letter-spacing: -0.2px
 
-// ── Nav ───────────────────────────────────────
+.divider
+  height: 1px
+  background: rgba(255, 255, 255, 0.08)
+  margin: 4px 0
+
 .nav-list
   padding: 8px 0
-  display: flex
-  flex-direction: column
+  overflow-y: auto
 
 .nav-item
   min-height: 46px
-  padding: 0 !important
-  display: flex !important
-  align-items: center !important
+  display: flex
+  align-items: center
+  cursor: pointer
   color: #8e8e93
-  border-radius: 0
   transition: background 0.15s, color 0.15s
 
   &:hover
@@ -160,8 +160,6 @@ function handleLogout() {
   color: #ef4444 !important
   border-right: 3px solid #ef4444
 
-// ── Icono wrapper: ancho = mini-width exacto ──
-// mini-width=60, sin márgenes → icon-wrap ocupa todo el ancho
 .icon-wrap
   width: 60px
   min-width: 60px
@@ -171,7 +169,6 @@ function handleLogout() {
   justify-content: center
   flex-shrink: 0
 
-// ── Label ─────────────────────────────────────
 .item-label
   font-size: 13px
   font-weight: 500
@@ -179,13 +176,6 @@ function handleLogout() {
   color: inherit
   padding-right: 16px
 
-// ── Divider ───────────────────────────────────
-.divider
-  height: 1px
-  background: rgba(255, 255, 255, 0.08)
-  margin: 4px 0
-
-// ── Footer ────────────────────────────────────
 .footer
   padding: 8px 0 12px
 
@@ -208,7 +198,6 @@ function handleLogout() {
     background: rgba(239, 68, 68, 0.10) !important
     color: #ef4444 !important
 
-// ── Fade ──────────────────────────────────────
 .fade-enter-active,
 .fade-leave-active
   transition: opacity 0.12s ease
