@@ -75,22 +75,50 @@ export const useIncidentStore = defineStore('incident', {
       )
       return { ok: true, data }
     },
-    async listarIncidencias(filtros) {
+
+    // ── PAGINADO ──────────────────────────────────────────────────────────
+    async contarIncidencias(filtros) {
+      let sql = "SELECT COUNT(*) AS TOTAL FROM CLS.TINCIDENCIAH WHERE ESTADOINCD NOT IN ('3', '99')"
+      const params = []
+      sql = this._aplicarFiltros(sql, params, filtros)
+      const rows = await this._query(sql, params)
+      return rows[0]?.TOTAL || 0
+    },
+
+    async listarIncidencias(filtros, pagina = 1, porPagina = 50) {
       let sql = "SELECT * FROM CLS.TINCIDENCIAH WHERE ESTADOINCD NOT IN ('3', '99')"
       const params = []
-      if (filtros.nroIncd) { sql += ' AND ID = ?'; params.push(filtros.nroIncd) }
-      if (filtros.codVend) { sql += ' AND CODVEND = ?'; params.push(filtros.codVend) }
-      if (filtros.codCli) { sql += ' AND CODCLI = ?'; params.push(filtros.codCli) }
-      if (filtros.tipoInc) { sql += ' AND TIPINCD = ?'; params.push(filtros.tipoInc) }
-      if (filtros.estado) { sql += ' AND ESTADOINCD = ?'; params.push(filtros.estado) }
-      if (filtros.usuario) { sql += ' AND USUARIOCREA = ?'; params.push(filtros.usuario) }
-      if (filtros.desde && filtros.hasta) { sql += ' AND FECHAINCID >= ? AND FECHAINCID <= ?'; params.push(filtros.desde, filtros.hasta) }
-      if (!filtros.nroIncd && !filtros.codVend && !filtros.codCli && !filtros.tipoInc && !filtros.estado && !filtros.usuario && !filtros.desde) {
-        sql += " AND MONTH(FECHAINCID) = MONTH(CURRENT DATE) AND YEAR(FECHAINCID) = YEAR(CURRENT DATE)"
-      }
+      sql = this._aplicarFiltros(sql, params, filtros)
       sql += ' ORDER BY ID DESC'
+
+      // DB2/AS400 paginación con FETCH FIRST + OFFSET (requiere DB2 v9.7+)
+      const offset = (pagina - 1) * porPagina
+      sql += ` OFFSET ${offset} ROWS FETCH NEXT ${porPagina} ROWS ONLY`
+
       return await this._query(sql, params)
     },
+
+    _aplicarFiltros(sql, params, filtros) {
+      if (filtros.nroIncd)  { sql += ' AND ID = ?';           params.push(filtros.nroIncd) }
+      if (filtros.codVend)  { sql += ' AND CODVEND = ?';      params.push(filtros.codVend) }
+      if (filtros.codCli)   { sql += ' AND CODCLI = ?';       params.push(filtros.codCli) }
+      if (filtros.tipoInc)  { sql += ' AND TIPINCD = ?';      params.push(filtros.tipoInc) }
+      if (filtros.estado)   { sql += ' AND ESTADOINCD = ?';   params.push(filtros.estado) }
+      if (filtros.usuario)  { sql += ' AND USUARIOCREA = ?';  params.push(filtros.usuario) }
+      if (filtros.desde && filtros.hasta) {
+        sql += ' AND FECHAINCID >= ? AND FECHAINCID <= ?'
+        params.push(filtros.desde, filtros.hasta)
+      }
+      // Sin filtros → solo mes actual
+      const sinFiltros = !filtros.nroIncd && !filtros.codVend && !filtros.codCli &&
+                         !filtros.tipoInc && !filtros.estado && !filtros.usuario && !filtros.desde
+      if (sinFiltros) {
+        sql += " AND MONTH(FECHAINCID) = MONTH(CURRENT DATE) AND YEAR(FECHAINCID) = YEAR(CURRENT DATE)"
+      }
+      return sql
+    },
+    // ─────────────────────────────────────────────────────────────────────
+
     async visualizar(id) {
       const query = `SELECT DISTINCT
        H.ID, H.CANAL, H.CODVEND, H.CODCLI, H.PHPVTA, H.PHNUME,
@@ -116,8 +144,7 @@ export const useIncidentStore = defineStore('incident', {
        WHERE H.ID = ?`
       const rows = await this._query(query, [id])
       const details = await this._query(
-        "SELECT * FROM CLS.TINCIDENCIAD WHERE ID_INDH = ?",
-        [id]
+        "SELECT * FROM CLS.TINCIDENCIAD WHERE ID_INDH = ?", [id]
       )
       return { header: rows[0], details }
     },
@@ -126,8 +153,7 @@ export const useIncidentStore = defineStore('incident', {
         `SELECT H.TIPINCDREAL, H.FECHCIERRE, H.USUARIOMOD, H.MOTCIERRE, TP.DESCTIPO
          FROM CLS.TINCIDENCIAH H
          LEFT JOIN CLS.TINCIDTIPO TP ON H.TIPINCDREAL = TP.IDTIPO
-         WHERE H.ID = ?`,
-        [id]
+         WHERE H.ID = ?`, [id]
       )
       return rows[0] || {}
     },
