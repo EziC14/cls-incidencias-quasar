@@ -105,13 +105,14 @@ export const useIncidentStore = defineStore('incident', {
       if (filtros.tipoInc)    { sql += ' AND H.TIPINCD = ?';           params.push(filtros.tipoInc) }
       if (filtros.estado)     { sql += ' AND H.ESTADOINCD = ?';        params.push(filtros.estado) }
       if (filtros.usuario)    { sql += ' AND H.USUARIOCREA = ?';       params.push(filtros.usuario) }
+      if (filtros.responsable) { sql += ' AND H.USRENC = ?';            params.push(filtros.responsable) }
       if (filtros.pedidoSerie) { sql += ' AND H.PHPVTA = ?';           params.push(filtros.pedidoSerie) }
       if (filtros.pedidoNro)  { sql += ' AND H.PHNUME = ?';            params.push(filtros.pedidoNro) }
       if (filtros.guia)       { sql += ' AND D.PDGUIA = ?';            params.push(filtros.guia) }
       if (filtros.oc)         { sql += ' AND P.PHREF1 = ?';            params.push(filtros.oc) }
       if (filtros.factura)    { sql += " AND (CAST(D.PDTDOC AS VARCHAR(10)) LIKE ? OR CAST(D.PDFABO AS VARCHAR(20)) LIKE ?)"; params.push(`%${filtros.factura}%`, `%${filtros.factura}%`) }
       if (filtros.desde && filtros.hasta) { sql += ' AND H.FECHAINCID >= ? AND H.FECHAINCID <= ?'; params.push(filtros.desde, filtros.hasta) }
-      const sinFiltros = !filtros.nroIncd && !filtros.codVend && !filtros.codCli && !filtros.tipoInc && !filtros.estado && !filtros.usuario && !filtros.desde && !filtros.pedidoSerie && !filtros.pedidoNro && !filtros.guia && !filtros.oc && !filtros.factura
+      const sinFiltros = !filtros.nroIncd && !filtros.codVend && !filtros.codCli && !filtros.tipoInc && !filtros.estado && !filtros.usuario && !filtros.responsable && !filtros.desde && !filtros.pedidoSerie && !filtros.pedidoNro && !filtros.guia && !filtros.oc && !filtros.factura
       if (sinFiltros) {
         sql += " AND SUBSTR(CHAR(H.FECHAINCID), 5, 2) = SUBSTR(CHAR(CURRENT DATE, ISO), 6, 2) AND SUBSTR(CHAR(H.FECHAINCID), 1, 4) = SUBSTR(CHAR(CURRENT DATE, ISO), 1, 4)"
       }
@@ -126,7 +127,7 @@ export const useIncidentStore = defineStore('incident', {
        H.DIRECCONT, H.EMAILCONT, H.COMENTARIO, H.TIPINCD, H.ESTADOINCD,
        H.USUARIOCREA, H.FECHACREA, H.EJERCICIO, H.PERIODO, H.ALMACEN, H.VALE,
        H.USUARIOREG, H.FECHCIERRE, H.MOTCIERRE, H.USUARIOMOD, H.FECHAMOD,
-       H.TIPINCDREAL,
+       H.TIPINCDREAL, H.USRENC,
        C.CLINOM AS CLINOM, V.AGENOM AS AGENOM, TP.DESCTIPO AS DESCTIPO,
        P.PHREF1,
        D.PDGUIA, D.PDFECG, D.PDTDOC, D.PDFABO, D.PDFECF,
@@ -161,8 +162,8 @@ export const useIncidentStore = defineStore('incident', {
     },
     async registrarCabecera(body) {
       await this._query(
-        `INSERT INTO CLS.TINCIDENCIAH (CANAL, CODVEND, CODCLI, PHPVTA, PHNUME, FECHAINCID, MONTDEV, MONEDA, NOMCONTACTO, NUMTLFO, DIRECCONT, EMAILCONT, COMENTARIO, TIPINCD, ESTADOINCD, USUARIOCREA, FECHACREA, EJERCICIO, PERIODO, ALMACEN, VALE) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '22', ?, TO_CHAR(CURRENT DATE, 'YYYYMMDD'), ?, ?, ?, ?)`,
-        [body.canal, body.codvend, body.codcli, body.phpvta, body.phnume, body.fechaincid, body.montdev, body.moneda, body.nomcontacto, body.numtlfo, body.direccontact, body.emailcontact, body.comentario, body.tipincd, body.usuariocrea, body.ejercicio, body.periodo, body.almacen, body.vale]
+        `INSERT INTO CLS.TINCIDENCIAH (CANAL, CODVEND, CODCLI, PHPVTA, PHNUME, FECHAINCID, MONTDEV, MONEDA, NOMCONTACTO, NUMTLFO, DIRECCONT, EMAILCONT, COMENTARIO, TIPINCD, ESTADOINCD, USUARIOCREA, FECHACREA, USRENC, EJERCICIO, PERIODO, ALMACEN, VALE) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '22', ?, TO_CHAR(CURRENT DATE, 'YYYYMMDD'), ?, ?, ?, ?, ?)`,
+        [body.canal, body.codvend, body.codcli, body.phpvta, body.phnume, body.fechaincid, body.montdev, body.moneda, body.nomcontacto, body.numtlfo, body.direccontact, body.emailcontact, body.comentario, body.tipincd, body.usuariocrea, body.usrenc, body.ejercicio, body.periodo, body.almacen, body.vale]
       )
       return { ok: true }
     },
@@ -198,6 +199,13 @@ export const useIncidentStore = defineStore('incident', {
       await this._query(
         "UPDATE CLS.TINCIDENCIAH SET ESTADOINCD = '99', USUARIOMOD = ?, FECHAMOD = TO_CHAR(CURRENT DATE, 'YYYYMMDD') WHERE ID = ?",
         [usuario, id]
+      )
+      return { ok: true }
+    },
+    async asignarResponsable(id, usrenc, usuario) {
+      await this._query(
+        "UPDATE CLS.TINCIDENCIAH SET USRENC = ?, USUARIOMOD = ?, FECHAMOD = TO_CHAR(CURRENT DATE, 'YYYYMMDD') WHERE ID = ?",
+        [usrenc, usuario, id]
       )
       return { ok: true }
     }

@@ -109,6 +109,10 @@
                     <div class="text-caption text-grey-7 q-mb-xs">Canal</div>
                     <q-input v-model="canal" outlined dense :readonly="!modVendedor" hide-bottom />
                   </div>
+                  <div class="col-12 col-sm-6 col-md-3">
+                    <div class="text-caption text-grey-7 q-mb-xs">Responsable</div>
+                    <q-select v-model="usuarioResponsable" :options="store.usuarios" outlined dense hide-bottom clearable />
+                  </div>
                   <div class="col-12 col-sm-6 col-md-3 flex items-center q-mt-md">
                     <q-checkbox v-model="modVendedor" label="Modificar Vendedor" dense />
                   </div>
@@ -289,6 +293,7 @@ const canal = ref('')
 const tipoIncidencia = ref(null)
 const fechaInc = ref(date.formatDate(Date.now(), 'YYYY-MM-DD'))
 const modVendedor = ref(false)
+const usuarioResponsable = ref(auth.usuario || '')
 const nomContacto = ref('')
 const dirContacto = ref('')
 const tlfContacto = ref('')
@@ -421,6 +426,7 @@ async function registrarIncidencia() {
       comentario: motivo.value,
       tipincd: tipoIncidencia.value.IDTIPO,
       usuariocrea: auth.usuario,
+      usrenc: usuarioResponsable.value || auth.usuario,
       ejercicio: '',
       periodo: '',
       almacen: '',
@@ -472,6 +478,7 @@ function nuevo() {
   tipoIncidencia.value = null
   fechaInc.value = date.formatDate(Date.now(), 'YYYY-MM-DD')
   modVendedor.value = false
+  usuarioResponsable.value = auth.usuario || ''
   nomContacto.value = ''
   dirContacto.value = ''
   tlfContacto.value = ''

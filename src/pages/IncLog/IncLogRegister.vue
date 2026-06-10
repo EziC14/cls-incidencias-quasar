@@ -87,9 +87,13 @@
                     <div class="text-caption text-grey-7 q-mb-xs">Fecha Incidencia</div>
                     <q-input v-model="fechaInc" outlined dense type="date" hide-bottom />
                   </div>
-                  <div class="col-12 col-sm-6 col-md-8">
+                  <div class="col-12 col-sm-6 col-md-4">
                     <div class="text-caption text-grey-7 q-mb-xs">Tipo Incidencia</div>
                     <q-select v-model="tipoIncidencia" :options="store.tipos" option-value="IDTIPO" option-label="DESCTIPO" outlined dense hide-bottom />
+                  </div>
+                  <div class="col-12 col-sm-6 col-md-4">
+                    <div class="text-caption text-grey-7 q-mb-xs">Responsable</div>
+                    <q-select v-model="usuarioResponsable" :options="store.usuarios" outlined dense hide-bottom clearable />
                   </div>
                 </div>
               </q-card-section>
@@ -250,6 +254,7 @@ const valeData = ref(null)
 const codCli = ref('')
 const nomCli = ref('')
 const tipoIncidencia = ref(null)
+const usuarioResponsable = ref(auth.usuario || '')
 const fechaInc = ref(date.formatDate(Date.now(), 'YYYY-MM-DD'))
 const nomContacto = ref('')
 const dirContacto = ref('')
@@ -357,6 +362,7 @@ async function registrarIncidencia() {
       comentario: motivo.value,
       tipincd: tipoIncidencia.value.IDTIPO,
       usuariocrea: auth.usuario,
+      usrenc: usuarioResponsable.value || auth.usuario,
       ejercicio: ejercicio.value,
       periodo: periodo.value,
       almacen: almacen.value,

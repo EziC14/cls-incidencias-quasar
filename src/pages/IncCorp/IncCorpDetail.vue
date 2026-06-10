@@ -70,6 +70,13 @@
                 <div class="text-caption text-grey-7 q-mb-xs">Canal</div>
                 <div class="text-body2 text-weight-medium">{{ incidencia.CANAL || '—' }}</div>
               </div>
+              <div class="col-12 col-sm-4">
+                <div class="text-caption text-grey-7 q-mb-xs">Responsable</div>
+                <div class="text-body2 text-weight-medium row items-center">
+                  <span>{{ incidencia.USRENC || '—' }}</span>
+                  <q-btn flat dense round icon="mdi-pencil" size="xs" color="grey-6" class="q-ml-xs" @click="editarResponsable = true" v-if="incidencia.ESTADOINCD === '22'" />
+                </div>
+              </div>
             </div>
           </q-card-section>
         </q-card>
@@ -270,6 +277,28 @@
 
     <CierreDialog v-model="cierreDialog" :incidencia-id="id" @saved="onCierreSaved" />
     <InfoDialog v-model="infoDialog" :incidencia="incidencia" :detalles="detalles" />
+
+    <q-dialog v-model="editarResponsable" persistent>
+      <q-card style="min-width: 380px; border-radius: 14px">
+        <q-card-section class="bg-primary text-white q-py-sm" style="border-radius: 14px 14px 0 0">
+          <div class="row items-center">
+            <q-icon name="mdi-account-edit" size="sm" class="q-mr-sm" />
+            <span class="text-weight-bold">Cambiar Responsable</span>
+            <q-space />
+            <q-btn flat dense icon="mdi-close" v-close-popup />
+          </div>
+        </q-card-section>
+        <q-card-section class="q-pt-md">
+          <q-select v-model="nuevoResponsable" :options="store.usuarios" label="Nuevo responsable" outlined dense autofocus hide-bottom />
+        </q-card-section>
+        <q-card-section class="bg-grey-2 q-py-sm" style="border-radius: 0 0 14px 14px">
+          <div class="row justify-end q-gutter-sm">
+            <q-btn label="Cancelar" flat v-close-popup style="border-radius: 8px" no-caps />
+            <q-btn label="Guardar" color="primary" unelevated @click="guardarResponsable" style="border-radius: 8px" no-caps />
+          </div>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
   </div>
 </template>
 
@@ -277,12 +306,14 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useIncidentStore } from 'stores/incident'
+import { useAuthStore } from 'stores/auth'
 import { useQuasar } from 'quasar'
 import { fmtFecha, fmtMoney } from 'src/helpers/format'
 import CierreDialog from './CierreDialog.vue'
 import InfoDialog from './InfoDialog.vue'
 
 const $q = useQuasar()
+const auth = useAuthStore()
 
 const route = useRoute()
 const store = useIncidentStore()
@@ -292,6 +323,8 @@ const detalles = ref([])
 const loading = ref(true)
 const cierreDialog = ref(false)
 const infoDialog = ref(false)
+const editarResponsable = ref(false)
+const nuevoResponsable = ref('')
 
 const fmtFactura = computed(() => {
   if (!incidencia.value) return ''
@@ -344,5 +377,17 @@ function openInfo() {
 function onCierreSaved() {
   cierreDialog.value = false
   $q.notify({ type: 'positive', message: 'Incidencia cerrada correctamente' })
+}
+
+async function guardarResponsable() {
+  if (!nuevoResponsable.value) return
+  try {
+    await store.asignarResponsable(id, nuevoResponsable.value, auth.usuario)
+    incidencia.value.USRENC = nuevoResponsable.value
+    editarResponsable.value = false
+    $q.notify({ type: 'positive', message: 'Responsable actualizado' })
+  } catch (err) {
+    $q.notify({ type: 'negative', message: 'Error al cambiar responsable' })
+  }
 }
 </script>

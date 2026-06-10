@@ -27,6 +27,15 @@
             @click="confirmDelete"
           />
           <q-btn
+            v-if="selected.length > 0"
+            label="Asignar"
+            color="primary"
+            icon="mdi-account-edit"
+            unelevated
+            class="q-mr-sm"
+            @click="asignarSelected"
+          />
+          <q-btn
             label="Nueva Incidencia"
             color="primary"
             icon="mdi-plus"
@@ -50,7 +59,7 @@
               <q-input
                 v-model="filtros.nroIncd"
                 label="Nro Incidencia"
-                outlined dense class="col-4"
+                outlined dense class="col-2"
                 hide-bottom
                 @keyup.enter="buscar"
               />
@@ -58,18 +67,26 @@
                 v-model="filtros.estado"
                 :options="estados"
                 label="Estado"
+                outlined dense class="col-2"
+                clearable hide-bottom
+                @update:model-value="buscar"
+              />
+              <q-select
+                v-model="filtros.responsable"
+                :options="store.usuarios"
+                label="Responsable"
                 outlined dense class="col-3"
                 clearable hide-bottom
                 @update:model-value="buscar"
               />
-              <div class="col-3">
+              <div class="col-2">
                 <q-btn
                   color="primary" icon="mdi-magnify" unelevated
                   @click="buscar" :loading="buscando"
                   class="full-width" style="height: 40px"
                 />
               </div>
-              <div class="col-2">
+              <div class="col-3">
                 <q-btn
                   label="Filtros" color="secondary" outline icon="mdi-cog"
                   @click="showFiltros = true"
@@ -171,6 +188,10 @@
                       <q-icon name="mdi-circle-small" size="xs" />
                     </template>
                     {{ inc.USUARIOCREA }}
+                    <template v-if="inc.USRENC">
+                      <q-icon name="mdi-circle-small" size="xs" />
+                      <q-icon name="mdi-account" size="xs" class="q-mr-xs" />{{ inc.USRENC }}
+                    </template>
                   </q-item-label>
                 </q-item-section>
                 <q-item-section side>
@@ -233,6 +254,30 @@
       </q-card-section>
     </q-card>
   </q-dialog>
+
+  <!-- Asignar responsable dialog -->
+  <q-dialog v-model="showAsignar" persistent>
+    <q-card style="min-width: 400px; border-radius: 14px">
+      <q-card-section class="bg-primary text-white q-py-sm" style="border-radius: 14px 14px 0 0">
+        <div class="row items-center">
+          <q-icon name="mdi-account-edit" size="sm" class="q-mr-sm" />
+          <span class="text-weight-bold">Asignar Responsable</span>
+          <q-space />
+          <q-btn flat dense icon="mdi-close" v-close-popup />
+        </div>
+      </q-card-section>
+      <q-card-section class="q-pt-md">
+        <div class="text-body2 q-mb-md">Asignar responsable a {{ selected.length }} incidencia(s):</div>
+        <q-select v-model="asignarUsuario" :options="store.usuarios" label="Responsable" outlined dense autofocus hide-bottom />
+      </q-card-section>
+      <q-card-section class="bg-grey-2 q-py-sm" style="border-radius: 0 0 14px 14px">
+        <div class="row justify-end q-gutter-sm">
+          <q-btn label="Cancelar" flat v-close-popup style="border-radius: 8px" no-caps />
+          <q-btn label="Asignar" color="primary" unelevated :loading="asignando" @click="executeAsignar" style="border-radius: 8px" no-caps />
+        </div>
+      </q-card-section>
+    </q-card>
+  </q-dialog>
 </template>
 
 <script setup>
@@ -260,12 +305,15 @@ const selected = ref([])
 const showPassword = ref(false)
 const deletePassword = ref('')
 const eliminando = ref(false)
+const showAsignar = ref(false)
+const asignarUsuario = ref(null)
+const asignando = ref(false)
 
 const totalPaginas = computed(() => Math.ceil(total.value / POR_PAGINA))
 
 const filtros = ref({
   nroIncd: '', codVend: '', codCli: '',
-  tipoInc: null, estado: null, usuario: null,
+  tipoInc: null, estado: null, usuario: null, responsable: null,
   pedidoSerie: '', pedidoNro: '', guia: '', oc: '', factura: '',
   desde: '', hasta: ''
 })
@@ -281,7 +329,7 @@ const estados = [
 
 const tieneFiltros = computed(() =>
   filtros.value.nroIncd || filtros.value.codVend || filtros.value.codCli ||
-  filtros.value.tipoInc || filtros.value.usuario ||
+  filtros.value.tipoInc || filtros.value.usuario || filtros.value.responsable ||
   filtros.value.pedidoSerie || filtros.value.pedidoNro ||
   filtros.value.guia || filtros.value.oc || filtros.value.factura ||
   filtros.value.desde || filtros.value.hasta
@@ -336,7 +384,7 @@ function aplicarFiltros() {
 }
 
 function limpiarFiltros() {
-  filtros.value = { nroIncd: '', codVend: '', codCli: '', tipoInc: null, estado: null, usuario: null, pedidoSerie: '', pedidoNro: '', guia: '', oc: '', factura: '', desde: '', hasta: '' }
+  filtros.value = { nroIncd: '', codVend: '', codCli: '', tipoInc: null, estado: null, usuario: null, responsable: null, pedidoSerie: '', pedidoNro: '', guia: '', oc: '', factura: '', desde: '', hasta: '' }
   showFiltros.value = false
   buscar()
 }
@@ -349,6 +397,15 @@ function toggleSelection(id) {
   const idx = selected.value.indexOf(id)
   if (idx === -1) selected.value.push(id)
   else selected.value.splice(idx, 1)
+}
+
+function asignarSelected() {
+  const noPendientes = incidencias.value.filter(i => selected.value.includes(i.ID) && i.ESTADOINCD !== '22')
+  if (noPendientes.length > 0) {
+    $q.notify({ type: 'warning', message: 'Solo se puede asignar responsable a incidencias Pendientes' })
+    return
+  }
+  showAsignar.value = true
 }
 
 function confirmDelete() {
@@ -375,6 +432,28 @@ async function executeDelete() {
     $q.notify({ type: 'negative', message: 'Error al eliminar' })
   } finally {
     eliminando.value = false
+  }
+}
+
+async function executeAsignar() {
+  if (!asignarUsuario.value) {
+    $q.notify({ type: 'warning', message: 'Seleccione un responsable' })
+    return
+  }
+  asignando.value = true
+  try {
+    for (const id of selected.value) {
+      await store.asignarResponsable(id, asignarUsuario.value, auth.usuario)
+    }
+    $q.notify({ type: 'positive', message: `Responsable asignado a ${selected.value.length} incidencia(s)` })
+    selected.value = []
+    showAsignar.value = false
+    asignarUsuario.value = null
+    await cargarPagina(paginaActual.value)
+  } catch (err) {
+    $q.notify({ type: 'negative', message: 'Error al asignar responsable' })
+  } finally {
+    asignando.value = false
   }
 }
 </script>
