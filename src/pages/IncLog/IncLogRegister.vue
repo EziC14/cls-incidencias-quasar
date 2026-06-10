@@ -350,26 +350,26 @@ async function registrarIncidencia() {
       canal: isLogisticUser ? 'VCONTR' : 'LURIN',
       codvend: isLogisticUser ? '034' : '',
       codcli: codCli.value,
-      phpvta: '',
-      phnume: '',
-      fechaincid: fechaInc.value,
+      phpvta: 0,
+      phnume: 0,
+      fechaincid: Number(fechaInc.value),
       montdev: montoDev.value,
-      moneda: 'SOL',
+      moneda: 0,
       nomcontacto: nomContacto.value,
       numtlfo: tlfContacto.value,
       direccontact: dirContacto.value,
       emailcontact: emailContacto.value,
       comentario: motivo.value,
-      tipincd: tipoIncidencia.value.IDTIPO,
+      tipincd: Number(tipoIncidencia.value.IDTIPO),
       usuariocrea: auth.usuario,
       usrenc: usuarioResponsable.value || auth.usuario,
-      ejercicio: ejercicio.value,
-      periodo: periodo.value,
+      ejercicio: Number(ejercicio.value) || 0,
+      periodo: Number(periodo.value) || 0,
       almacen: almacen.value,
-      vale: vale.value
+      vale: Number(vale.value) || 0
     }
     await store.registrarCabecera(cabecera)
-    const id = await store.obtenerIdVale(ejercicio.value, periodo.value, almacen.value, vale.value)
+    const id = await store.obtenerIdVale(Number(ejercicio.value) || 0, Number(periodo.value) || 0, almacen.value, Number(vale.value) || 0)
 
     for (let i = 0; i < productosSeleccionados.value.length; i++) {
       const p = productosSeleccionados.value[i]
@@ -379,11 +379,11 @@ async function registrarIncidencia() {
         codprod: p.codprod,
         artabc: '',
         artmar: '',
-        precprod: p.precprod,
-        cantdev: p.cantdev,
+        precprod: Number(p.precprod) || 0,
+        cantdev: Number(p.cantdev) || 0,
         artmed: p.artmed,
-        vale: vale.value,
-        cantvale: p.cantdev
+        vale: Number(vale.value) || 0,
+        cantvale: Number(p.cantdev) || 0
       })
     }
 

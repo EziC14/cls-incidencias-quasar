@@ -6,23 +6,23 @@
         <div>
           <div class="text-h6 text-weight-bold">Registrar Incidencia Corporativa</div>
           <div class="text-caption text-grey-7">Nuevo registro de incidencia</div>
+          </div>
         </div>
-      </div>
 
-      <q-splitter v-model="splitterModel" style="height: calc(100vh - 180px)">
-        <template v-slot:before>
-          <div class="q-pa-sm">
-            <q-card flat bordered class="q-mb-sm">
-              <q-card-section class="bg-primary text-white q-py-sm">
-                <div class="row items-center">
-                  <q-icon name="mdi-magnify" size="sm" class="q-mr-sm" />
-                  <span class="text-weight-bold">Búsqueda de Pedido</span>
-                </div>
-              </q-card-section>
-              <q-card-section class="q-pt-sm q-pb-md">
-                <div class="row q-col-gutter-sm items-end">
-                  <q-input v-model="serie" label="Serie" outlined dense class="col-4" hide-bottom />
-                  <q-input v-model="correlativo" label="Correlativo" outlined dense class="col-4" hide-bottom />
+        <q-splitter v-model="splitterModel" style="height: calc(100vh - 180px)">
+          <template v-slot:before>
+            <div class="q-pa-sm">
+              <q-card flat bordered class="q-mb-sm">
+                <q-card-section class="bg-primary text-white q-py-sm">
+                  <div class="row items-center">
+                    <q-icon name="mdi-magnify" size="sm" class="q-mr-sm" />
+                    <span class="text-weight-bold">Búsqueda de Pedido</span>
+                  </div>
+                </q-card-section>
+                <q-card-section class="q-pt-sm q-pb-md">
+                  <div class="row q-col-gutter-sm items-end">
+                    <q-input v-model="serie" label="Serie" outlined dense class="col-4" hide-bottom />
+                    <q-input v-model="correlativo" label="Correlativo" outlined dense class="col-4" hide-bottom />
                   <div class="col-4">
                     <div class="text-caption text-grey-7">&nbsp;</div>
                     <q-btn color="primary" icon="mdi-magnify" @click="buscarPedido" :loading="buscando" unelevated class="full-width" style="height: 40px" />
@@ -78,7 +78,7 @@
                   </div>
                   <div class="col-12 col-sm-6 col-md-4">
                     <div class="text-caption text-grey-7 q-mb-xs">Moneda</div>
-                    <div class="text-body2 text-weight-medium">{{ moneda || '—' }}</div>
+                    <div class="text-body2 text-weight-medium">{{ moneda === 0 ? 'SOLES' : moneda === 1 ? 'DÓLARES' : (moneda ?? '—') }}</div>
                   </div>
                 </div>
               </q-card-section>
@@ -91,38 +91,39 @@
                   <span class="text-weight-bold">Datos de Incidencia</span>
                 </div>
               </q-card-section>
-              <q-card-section class="q-pt-sm q-pb-md">
-                <div class="row q-col-gutter-sm items-center">
-                  <div class="col-12 col-sm-6 col-md-3">
+              <q-card-section class="q-pt-md q-pb-md">
+                <div class="row q-col-gutter-md">
+                  <div class="col-12 col-sm-6 col-md-4">
                     <div class="text-caption text-grey-7 q-mb-xs">Cód. Vendedor</div>
-                    <q-input v-model="codVend" outlined dense :readonly="!modVendedor" hide-bottom>
+                    <q-input v-model="codVend" outlined dense hide-bottom>
                       <template v-slot:append>
                         <q-btn flat dense icon="mdi-magnify" @click="openVendedorDialog" />
                       </template>
                     </q-input>
                   </div>
-                  <div class="col-12 col-sm-6 col-md-4">
+                  <div class="col-12 col-sm-6 col-md-5">
                     <div class="text-caption text-grey-7 q-mb-xs">Vendedor</div>
-                    <q-input v-model="nomVend" outlined dense :readonly="!modVendedor" hide-bottom />
+                    <q-input v-model="nomVend" outlined dense :readonly="!modVendedor" hide-bottom>
+                      <template v-slot:append>
+                        <q-btn flat dense :icon="modVendedor ? 'mdi-lock-open-variant' : 'mdi-lock'" :color="modVendedor ? 'primary' : 'grey-5'" @click="modVendedor = !modVendedor" size="sm" />
+                      </template>
+                    </q-input>
                   </div>
-                  <div class="col-12 col-sm-6 col-md-2">
+                  <div class="col-12 col-sm-6 col-md-3">
                     <div class="text-caption text-grey-7 q-mb-xs">Canal</div>
                     <q-input v-model="canal" outlined dense :readonly="!modVendedor" hide-bottom />
                   </div>
-                  <div class="col-12 col-sm-6 col-md-3">
-                    <div class="text-caption text-grey-7 q-mb-xs">Responsable</div>
-                    <q-select v-model="usuarioResponsable" :options="store.usuarios" outlined dense hide-bottom clearable />
-                  </div>
-                  <div class="col-12 col-sm-6 col-md-3 flex items-center q-mt-md">
-                    <q-checkbox v-model="modVendedor" label="Modificar Vendedor" dense />
-                  </div>
-                  <div class="col-12 col-sm-6 col-md-8">
+                  <div class="col-12 col-sm-6 col-md-4">
                     <div class="text-caption text-grey-7 q-mb-xs">Tipo Incidencia</div>
                     <q-select v-model="tipoIncidencia" :options="store.tipos" option-value="IDTIPO" option-label="DESCTIPO" outlined dense hide-bottom />
                   </div>
-                  <div class="col-12 col-sm-6 col-md-4">
+                  <div class="col-12 col-sm-6 col-md-3">
                     <div class="text-caption text-grey-7 q-mb-xs">Fecha Incidencia</div>
                     <q-input v-model="fechaInc" outlined dense type="date" hide-bottom />
+                  </div>
+                  <div class="col-12 col-sm-6 col-md-5">
+                    <div class="text-caption text-grey-7 q-mb-xs">Responsable</div>
+                    <q-select v-model="usuarioResponsable" :options="store.usuarios" outlined dense hide-bottom clearable />
                   </div>
                 </div>
               </q-card-section>
@@ -177,25 +178,30 @@
               <q-card-section class="bg-primary text-white q-py-sm">
                 <div class="row items-center">
                   <q-icon name="mdi-package" size="sm" class="q-mr-sm" />
-                  <span class="text-weight-bold">Items del Pedido ({{ itemsPedido.length }})</span>
+                  <span class="text-weight-bold">Items del Pedido ({{ itemsDisponibles.length }})</span>
                   <q-space />
+                  <q-btn label="Todo" color="white" outline dense @click="toggleAllItems" size="sm" class="q-mr-sm" />
                   <q-btn label="Agregar" color="white" outline dense @click="agregarProductos" :disable="selectedItems.length === 0" icon="mdi-arrow-right" />
                 </div>
               </q-card-section>
               <q-scroll-area style="flex: 1">
                 <q-list dense padding>
-                  <q-item v-for="(item, i) in itemsPedido" :key="i" clickable v-ripple :class="selectedItems.find(s => s.PDARTI === item.PDARTI) ? 'bg-primary text-white' : i % 2 === 0 ? 'bg-grey-1' : ''" @click="toggleItem(item)">
+                  <q-item v-for="(item, i) in itemsDisponibles" :key="item._idx" clickable v-ripple :class="selectedItems.find(s => s._idx === item._idx) ? 'bg-primary text-white' : i % 2 === 0 ? 'bg-grey-1' : ''" @click="toggleItem(item)" style="border-radius: 8px; margin: 2px 0">
                     <q-item-section side>
-                      <q-checkbox :model-value="!!selectedItems.find(s => s.PDARTI === item.PDARTI)" dense />
+                      <q-checkbox :model-value="!!selectedItems.find(s => s._idx === item._idx)" dense @click.stop />
                     </q-item-section>
                     <q-item-section>
                       <q-item-label class="text-weight-medium">{{ item.PDARTI }}</q-item-label>
-                      <q-item-label caption :class="selectedItems.find(s => s.PDARTI === item.PDARTI) ? 'text-white' : ''">{{ item.ARTDES }}</q-item-label>
+                      <q-item-label caption :class="selectedItems.find(s => s._idx === item._idx) ? 'text-white' : ''">{{ item.ARTDES }}</q-item-label>
+                    <q-item-label caption v-if="item.VALE" :class="selectedItems.find(s => s._idx === item._idx) ? 'text-white' : ''">
+                      <q-icon name="mdi-file-document" size="xs" class="q-mr-xs" />VALE: {{ item.VALE }} · Cant: {{ item.CANTREQ }}
+                    </q-item-label>
                     </q-item-section>
                     <q-item-section side>
                       <div class="text-right">
                         <div class="text-weight-bold">{{ item.PDCANT }}</div>
-                        <div class="text-caption">{{ item.PDUNIT }}</div>
+                        <div class="text-caption">u. {{ item.ARTMED || '' }}</div>
+                        <div class="text-caption">S/ {{ item.PDUNIT }}</div>
                       </div>
                     </q-item-section>
                   </q-item>
@@ -226,11 +232,12 @@
                     <q-item-section>
                       <q-item-label class="text-weight-medium">{{ p.codprod }}</q-item-label>
                       <q-item-label caption>ABC: {{ p.artabc }} · Marca: {{ p.artmar }} · Medida: {{ p.artmed }}</q-item-label>
+                      <q-item-label caption v-if="p.vale">VALE: {{ p.vale }} · Cant: {{ p.cantreq }}</q-item-label>
                     </q-item-section>
                     <q-item-section side>
                       <div class="text-right">
                         <div class="text-weight-bold text-primary">{{ p.precprod }}</div>
-                        <q-input dense v-model="p.cantdev" type="number" min="0" :max="p.maxCant" @update:model-value="calcularMontoTotal" style="width: 70px" class="q-mt-xs" outlined hide-bottom />
+                        <q-input dense v-model="p.cantdev" type="number" min="0" :max="p.maxCant" @update:model-value="validarCantidad(p)" style="width: 70px" class="q-mt-xs" outlined hide-bottom />
                       </div>
                     </q-item-section>
                   </q-item>
@@ -262,7 +269,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useIncidentStore } from 'stores/incident'
 import { useAuthStore } from 'stores/auth'
 import { date, useQuasar } from 'quasar'
@@ -307,6 +314,11 @@ const registrando = ref(false)
 const vendedorDialog = ref(false)
 const loading = ref(true)
 
+const itemsDisponibles = computed(() => {
+  const addedIdx = productosSeleccionados.value.map(p => p._idx)
+  return itemsPedido.value.filter(item => !addedIdx.includes(item._idx))
+})
+
 onMounted(async () => {
   await store.loadTipos()
   loading.value = false
@@ -326,7 +338,7 @@ async function buscarPedido() {
       fecOC.value = result.data.PHFEIN || ''
       const monto = parseFloat(result.data.PHNVVA) || parseFloat(result.data.PHEVVA) || 0
       montoOC.value = monto.toFixed(2)
-      moneda.value = result.data.PHMONE === 0 ? 'SOLES' : result.data.PHMONE === 1 ? 'DOLARES' : (result.data.PHMONE || '')
+      moneda.value = result.data.PHMONE
 
       if (result.data.PHUSAP) {
         codVend.value = result.data.PHUSAP
@@ -343,7 +355,7 @@ async function buscarPedido() {
       }
 
       const detalle = await store.searchPedidoDetalle(serie.value, correlativo.value)
-      itemsPedido.value = detalle.data || []
+      itemsPedido.value = (detalle.data || []).map((item, idx) => ({ ...item, _idx: idx }))
     } else {
       $q.notify({ type: 'negative', message: result.error || 'Pedido no encontrado' })
     }
@@ -355,25 +367,34 @@ async function buscarPedido() {
 }
 
 function toggleItem(item) {
-  const idx = selectedItems.value.findIndex(s => s.PDARTI === item.PDARTI)
-  if (idx >= 0) {
-    selectedItems.value.splice(idx, 1)
+  const found = selectedItems.value.find(s => s._idx === item._idx)
+  if (found) selectedItems.value.splice(selectedItems.value.indexOf(found), 1)
+  else selectedItems.value.push({ ...item })
+}
+
+function toggleAllItems() {
+  if (selectedItems.value.length === itemsDisponibles.value.length) {
+    selectedItems.value = []
   } else {
-    selectedItems.value.push(item)
+    selectedItems.value = itemsDisponibles.value.map(item => ({ ...item }))
   }
 }
 
 function agregarProductos() {
   selectedItems.value.forEach(item => {
-    if (!productosSeleccionados.value.find(p => p.codprod === item.PDARTI)) {
+    const existente = productosSeleccionados.value.find(p => p._idx === item._idx)
+    if (!existente) {
       productosSeleccionados.value.push({
+        _idx: item._idx,
         codprod: item.PDARTI,
         artabc: item.ARTABC || '',
         artmar: item.ARTMAR || '',
         precprod: item.PDUNIT || 0,
         cantdev: item.PDCANT || 0,
         maxCant: item.PDCANT || 0,
-        artmed: item.ARTMED || ''
+        artmed: item.ARTMED || '',
+        vale: item.VALE || '',
+        cantreq: item.CANTREQ || 0
       })
     }
   })
@@ -381,8 +402,15 @@ function agregarProductos() {
   calcularMontoTotal()
 }
 
+function validarCantidad(p) {
+  const val = Number(p.cantdev)
+  if (val > p.maxCant) p.cantdev = p.maxCant
+  if (val < 0) p.cantdev = 0
+  calcularMontoTotal()
+}
+
 function eliminarProducto(row) {
-  const idx = productosSeleccionados.value.findIndex(p => p.codprod === row.codprod)
+  const idx = productosSeleccionados.value.findIndex(p => p._idx === row._idx && p.codprod === row.codprod)
   if (idx >= 0) {
     productosSeleccionados.value.splice(idx, 1)
     calcularMontoTotal()
@@ -414,9 +442,9 @@ async function registrarIncidencia() {
       canal: canal.value,
       codvend: codVend.value,
       codcli: pedido.value.PHCLIE,
-      phpvta: serie.value,
-      phnume: correlativo.value,
-      fechaincid: fechaInc.value,
+      phpvta: Number(serie.value),
+      phnume: Number(correlativo.value),
+      fechaincid: Number(fechaInc.value),
       montdev: montoDev.value,
       moneda: moneda.value,
       nomcontacto: nomContacto.value,
@@ -424,7 +452,7 @@ async function registrarIncidencia() {
       direccontact: dirContacto.value,
       emailcontact: emailContacto.value,
       comentario: motivo.value,
-      tipincd: tipoIncidencia.value.IDTIPO,
+      tipincd: Number(tipoIncidencia.value.IDTIPO),
       usuariocrea: auth.usuario,
       usrenc: usuarioResponsable.value || auth.usuario,
       ejercicio: '',
@@ -443,11 +471,11 @@ async function registrarIncidencia() {
         codprod: p.codprod,
         artabc: p.artabc,
         artmar: p.artmar,
-        precprod: p.precprod,
-        cantdev: p.cantdev,
-        artmed: p.artmed,
-        vale: '',
-        cantvale: 0
+        precprod: Number(p.precprod) || 0,
+        cantdev: Number(p.cantdev) || 0,
+        artmed: p.artmed || '',
+        vale: p.vale ? String(p.vale).slice(0, 8) : '',
+        cantvale: Number(p.cantreq) || 0
       })
     }
 

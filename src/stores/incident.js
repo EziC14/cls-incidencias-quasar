@@ -47,9 +47,12 @@ export const useIncidentStore = defineStore('incident', {
     },
     async searchPedidoDetalle(serie, correlativo) {
       const data = await this._query(
-        `SELECT D.PDARTI, A.ARTDES, D.PDCANT, D.PDUNIT, A.ARTMAR, A.ARTABC, A.ARTMED
+        `SELECT D.PDARTI, A.ARTDES, D.PDCANT, D.PDUNIT, A.ARTMAR, A.ARTABC, A.ARTMED,
+                C.REQNRO AS VALE, C.REGCAN AS CANTREQ
          FROM SPEED400CS.TPEDD D
          INNER JOIN SPEED400CS.TARTI A ON A.ARTCOD = D.PDARTI
+         LEFT JOIN SPEED400CS.TCOTD T ON D.PDSCOT = T.PDPVTA AND D.PDNCOT = T.PDNUME AND D.PDSECC = T.PDSECU
+         LEFT JOIN SPEED400CS.CREQD C ON T.PDPVTA = C.REGSCT AND T.PDNUME = C.REGNCT AND T.PDSECU = C.REGSCU
          WHERE D.PDPVTA = ? AND D.PDNUME = ?`,
         [serie, correlativo]
       )
