@@ -115,9 +115,16 @@
                 <div class="text-caption text-grey-7 q-mb-xs">Fec. OC</div>
                 <div class="text-body2 text-weight-medium">{{ fmtFecha(incidencia.PHFEIN) }}</div>
               </div>
-              <div class="col-6 col-sm-4">
+              <div class="col-6 col-sm-3">
+                <div class="text-caption text-grey-7 q-mb-xs">Moneda</div>
+                <div class="text-body2 text-weight-medium">
+                  <q-chip v-if="incidencia.MONEDA === 1" size="sm" color="amber" text-color="black" dense>USD</q-chip>
+                  <q-chip v-else size="sm" color="green" text-color="white" dense>SOLES</q-chip>
+                </div>
+              </div>
+              <div class="col-6 col-sm-3">
                 <div class="text-caption text-grey-7 q-mb-xs">Monto OC</div>
-                <div class="text-body2 text-weight-medium">{{ incidencia.PHNVVA || incidencia.PHEVVA || '—' }}</div>
+                <div class="text-body2 text-weight-medium">S/ {{ fmtMoney(incidencia.PHNVVA || incidencia.PHEVVA) }}</div>
               </div>
             </div>
           </q-card-section>
@@ -215,20 +222,26 @@
                   </q-item-section>
                   <q-item-section>
                     <q-item-label class="text-weight-medium">{{ det.CODPROD }}</q-item-label>
+                    <q-item-label>
+                      <div class="text-caption text-grey-8">{{ det.ARTDES || '—' }}</div>
+                    </q-item-label>
                     <q-item-label caption>
                       ABC: {{ det.ARTABC }} · Marca: {{ det.ARTMAR }} · Medida: {{ det.ARTMED }}
                     </q-item-label>
-                    <q-item-label caption v-if="det.VALE">
-                      Vale: {{ det.VALE }} · Cant. Vale: {{ det.CANTVALE }}
+                    <q-item-label caption v-if="det.VALE && det.VALE !== '0' && det.VALE !== '1'" class="text-primary">
+                      RQ: {{ det.VALE }} · Cant: {{ det.CANTVALE }}
                     </q-item-label>
                   </q-item-section>
                   <q-item-section side>
                     <div class="text-right">
-                      <div class="text-weight-bold text-primary">{{ det.PRECPROD || '0.00' }}</div>
-                      <div class="text-caption text-grey-7">x {{ det.CANTDEV }}</div>
-                      <div v-if="det.CANTVALE" class="text-caption text-positive">
-                        <q-icon name="mdi-check-circle" size="xs" /> Vale
+                      <div v-if="det.VALE && det.VALE !== '0' && det.VALE !== '1'" class="q-mb-xs">
+                        <q-badge color="primary" rounded>REQ</q-badge>
                       </div>
+                      <div v-else class="q-mb-xs">
+                        <q-badge color="positive" rounded>STOCK</q-badge>
+                      </div>
+                      <div class="text-weight-bold text-primary">{{ fmtMoney(det.PRECPROD) }}</div>
+                      <div class="text-caption text-grey-7">x {{ det.CANTDEV }}</div>
                     </div>
                   </q-item-section>
                 </q-item>
@@ -265,7 +278,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useIncidentStore } from 'stores/incident'
 import { useQuasar } from 'quasar'
-import { fmtFecha } from 'src/helpers/format'
+import { fmtFecha, fmtMoney } from 'src/helpers/format'
 import CierreDialog from './CierreDialog.vue'
 import InfoDialog from './InfoDialog.vue'
 

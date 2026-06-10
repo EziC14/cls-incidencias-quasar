@@ -91,6 +91,15 @@
                 <q-input v-model="filtros.desde" label="Desde" outlined dense type="date" class="col-4" hide-bottom />
                 <q-input v-model="filtros.hasta" label="Hasta" outlined dense type="date" class="col-4" hide-bottom />
               </div>
+              <q-separator class="q-my-md" />
+              <div class="text-caption text-grey-7 q-mb-sm text-weight-medium">Pedido / Guía / OC / Factura</div>
+              <div class="row q-col-gutter-sm items-end">
+                <q-input v-model="filtros.pedidoSerie" label="Serie Pedido" outlined dense class="col-2" hide-bottom />
+                <q-input v-model="filtros.pedidoNro" label="Nro Pedido" outlined dense class="col-2" hide-bottom />
+                <q-input v-model="filtros.guia" label="Nro Guía" outlined dense class="col-3" hide-bottom />
+                <q-input v-model="filtros.oc" label="OC" outlined dense class="col-2" hide-bottom />
+                <q-input v-model="filtros.factura" label="Factura" outlined dense class="col-3" hide-bottom />
+              </div>
             </q-card-section>
             <q-card-section class="q-py-sm bg-grey-2">
               <div class="row justify-end q-gutter-sm">
@@ -214,6 +223,7 @@ const totalPaginas = computed(() => Math.ceil(total.value / POR_PAGINA))
 const filtros = ref({
   nroIncd: '', codVend: '', codCli: '',
   tipoInc: null, estado: null, usuario: null,
+  pedidoSerie: '', pedidoNro: '', guia: '', oc: '', factura: '',
   desde: '', hasta: ''
 })
 
@@ -229,6 +239,8 @@ const estados = [
 const tieneFiltros = computed(() =>
   filtros.value.nroIncd || filtros.value.codVend || filtros.value.codCli ||
   filtros.value.tipoInc || filtros.value.usuario ||
+  filtros.value.pedidoSerie || filtros.value.pedidoNro ||
+  filtros.value.guia || filtros.value.oc || filtros.value.factura ||
   filtros.value.desde || filtros.value.hasta
 )
 
@@ -281,7 +293,7 @@ function aplicarFiltros() {
 }
 
 function limpiarFiltros() {
-  filtros.value = { nroIncd: '', codVend: '', codCli: '', tipoInc: null, estado: null, usuario: null, desde: '', hasta: '' }
+  filtros.value = { nroIncd: '', codVend: '', codCli: '', tipoInc: null, estado: null, usuario: null, pedidoSerie: '', pedidoNro: '', guia: '', oc: '', factura: '', desde: '', hasta: '' }
   showFiltros.value = false
   buscar()
 }
