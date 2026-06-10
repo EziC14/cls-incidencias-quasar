@@ -18,6 +18,15 @@
           </div>
           <q-space />
           <q-btn
+            v-if="selected.length > 0"
+            :label="`Eliminar (${selected.length})`"
+            color="negative"
+            icon="mdi-delete"
+            unelevated
+            class="q-mr-sm"
+            @click="confirmDelete"
+          />
+          <q-btn
             label="Nueva Incidencia"
             color="primary"
             icon="mdi-plus"
@@ -131,8 +140,14 @@
                 class="q-py-sm"
               >
                 <q-item-section side>
-                  <q-icon name="mdi-chevron-right" size="sm" class="text-grey-5" />
+                  <q-checkbox
+                    :model-value="selected.includes(inc.ID)"
+                    @click.stop
+                    @update:model-value="toggleSelection(inc.ID)"
+                    dense
+                  />
                 </q-item-section>
+
                 <q-item-section side>
                   <q-badge rounded :color="getEstadoColor(inc.ESTADOINCD)" class="q-px-sm q-py-xs text-weight-medium">
                     {{ getEstadoLabel(inc.ESTADOINCD) }}
@@ -196,6 +211,28 @@
       </div>
     </template>
   </div>
+
+  <!-- Password dialog -->
+  <q-dialog v-model="showPassword" persistent>
+    <q-card style="min-width: 360px; border-radius: 14px">
+      <q-card-section class="bg-negative text-white q-py-sm" style="border-radius: 14px 14px 0 0">
+        <div class="row items-center">
+          <q-icon name="mdi-shield-lock" size="sm" class="q-mr-sm" />
+          <span class="text-weight-bold">Confirmar eliminación</span>
+        </div>
+      </q-card-section>
+      <q-card-section class="q-pt-md">
+        <div class="text-body2 q-mb-md">Ingrese la contraseña para eliminar {{ selected.length }} incidencia(s):</div>
+        <q-input v-model="deletePassword" type="password" outlined dense autofocus hide-bottom @keyup.enter="executeDelete" />
+      </q-card-section>
+      <q-card-section class="bg-grey-2 q-py-sm" style="border-radius: 0 0 14px 14px">
+        <div class="row justify-end q-gutter-sm">
+          <q-btn label="Cancelar" flat v-close-popup style="border-radius: 8px" no-caps />
+          <q-btn label="Eliminar" color="negative" unelevated @click="executeDelete" :loading="eliminando" style="border-radius: 8px" no-caps />
+        </div>
+      </q-card-section>
+    </q-card>
+  </q-dialog>
 </template>
 
 <script setup>
@@ -204,10 +241,12 @@ import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { fmtFecha } from 'src/helpers/format'
 import { useIncidentStore } from 'stores/incident'
+import { useAuthStore } from 'stores/auth'
 
 const $q = useQuasar()
 const router = useRouter()
 const store = useIncidentStore()
+const auth = useAuthStore()
 
 const POR_PAGINA = 50
 
@@ -217,6 +256,10 @@ const buscando = ref(false)
 const showFiltros = ref(false)
 const total = ref(0)
 const paginaActual = ref(1)
+const selected = ref([])
+const showPassword = ref(false)
+const deletePassword = ref('')
+const eliminando = ref(false)
 
 const totalPaginas = computed(() => Math.ceil(total.value / POR_PAGINA))
 
@@ -300,5 +343,38 @@ function limpiarFiltros() {
 
 function abrirDetalle(inc) {
   router.push(`/inc-corp/detalle/${inc.ID}`)
+}
+
+function toggleSelection(id) {
+  const idx = selected.value.indexOf(id)
+  if (idx === -1) selected.value.push(id)
+  else selected.value.splice(idx, 1)
+}
+
+function confirmDelete() {
+  deletePassword.value = ''
+  showPassword.value = true
+}
+
+async function executeDelete() {
+  if (deletePassword.value !== 'Tones') {
+    $q.notify({ type: 'negative', message: 'Contraseña incorrecta' })
+    return
+  }
+  eliminando.value = true
+  try {
+    const usuario = auth.usuario || 'ELIMINACION'
+    for (const id of selected.value) {
+      await store.eliminarIncidencia(id, usuario)
+    }
+    $q.notify({ type: 'positive', message: `${selected.value.length} incidencia(s) eliminada(s)` })
+    selected.value = []
+    showPassword.value = false
+    await cargarPagina(1)
+  } catch (err) {
+    $q.notify({ type: 'negative', message: 'Error al eliminar' })
+  } finally {
+    eliminando.value = false
+  }
 }
 </script>

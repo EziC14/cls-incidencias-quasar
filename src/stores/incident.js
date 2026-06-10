@@ -113,7 +113,7 @@ export const useIncidentStore = defineStore('incident', {
       if (filtros.desde && filtros.hasta) { sql += ' AND H.FECHAINCID >= ? AND H.FECHAINCID <= ?'; params.push(filtros.desde, filtros.hasta) }
       const sinFiltros = !filtros.nroIncd && !filtros.codVend && !filtros.codCli && !filtros.tipoInc && !filtros.estado && !filtros.usuario && !filtros.desde && !filtros.pedidoSerie && !filtros.pedidoNro && !filtros.guia && !filtros.oc && !filtros.factura
       if (sinFiltros) {
-        sql += " AND MONTH(H.FECHAINCID) = MONTH(CURRENT DATE) AND YEAR(H.FECHAINCID) = YEAR(CURRENT DATE)"
+        sql += " AND SUBSTR(CHAR(H.FECHAINCID), 5, 2) = SUBSTR(CHAR(CURRENT DATE, ISO), 6, 2) AND SUBSTR(CHAR(H.FECHAINCID), 1, 4) = SUBSTR(CHAR(CURRENT DATE, ISO), 1, 4)"
       }
       return sql
     },
@@ -161,7 +161,7 @@ export const useIncidentStore = defineStore('incident', {
     },
     async registrarCabecera(body) {
       await this._query(
-        `INSERT INTO CLS.TINCIDENCIAH (CANAL, CODVEND, CODCLI, PHPVTA, PHNUME, FECHAINCID, MONTDEV, MONEDA, NOMCONTACTO, NUMTLFO, DIRECCONT, EMAILCONT, COMENTARIO, TIPINCD, ESTADOINCD, USUARIOCREA, FECHACREA, EJERCICIO, PERIODO, ALMACEN, VALE) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '22', ?, CURRENT DATE, ?, ?, ?, ?)`,
+        `INSERT INTO CLS.TINCIDENCIAH (CANAL, CODVEND, CODCLI, PHPVTA, PHNUME, FECHAINCID, MONTDEV, MONEDA, NOMCONTACTO, NUMTLFO, DIRECCONT, EMAILCONT, COMENTARIO, TIPINCD, ESTADOINCD, USUARIOCREA, FECHACREA, EJERCICIO, PERIODO, ALMACEN, VALE) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '22', ?, TO_CHAR(CURRENT DATE, 'YYYYMMDD'), ?, ?, ?, ?)`,
         [body.canal, body.codvend, body.codcli, body.phpvta, body.phnume, body.fechaincid, body.montdev, body.moneda, body.nomcontacto, body.numtlfo, body.direccontact, body.emailcontact, body.comentario, body.tipincd, body.usuariocrea, body.ejercicio, body.periodo, body.almacen, body.vale]
       )
       return { ok: true }
@@ -189,14 +189,14 @@ export const useIncidentStore = defineStore('incident', {
     },
     async cerrarIncidencia(body) {
       await this._query(
-        "UPDATE CLS.TINCIDENCIAH SET ESTADOINCD = '21', TIPINCDREAL = ?, MOTCIERRE = ?, FECHCIERRE = ?, USUARIOMOD = ?, FECHAMOD = CURRENT DATE WHERE ID = ?",
+        "UPDATE CLS.TINCIDENCIAH SET ESTADOINCD = '21', TIPINCDREAL = ?, MOTCIERRE = ?, FECHCIERRE = ?, USUARIOMOD = ?, FECHAMOD = TO_CHAR(CURRENT DATE, 'YYYYMMDD') WHERE ID = ?",
         [body.tipo, body.motivo, body.fecha, body.usuario, body.id]
       )
       return { ok: true }
     },
     async eliminarIncidencia(id, usuario) {
       await this._query(
-        "UPDATE CLS.TINCIDENCIAH SET ESTADOINCD = '99', USUARIOMOD = ?, FECHAMOD = CURRENT DATE WHERE ID = ?",
+        "UPDATE CLS.TINCIDENCIAH SET ESTADOINCD = '99', USUARIOMOD = ?, FECHAMOD = TO_CHAR(CURRENT DATE, 'YYYYMMDD') WHERE ID = ?",
         [usuario, id]
       )
       return { ok: true }
