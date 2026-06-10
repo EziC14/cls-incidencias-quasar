@@ -10,6 +10,7 @@
       <q-space />
       <q-btn v-if="incidencia?.ESTADOINCD === '22'" label="Cerrar" color="primary" icon="mdi-check-circle" @click="openCierre" unelevated class="q-mr-sm" style="height: 36px; border-radius: 8px" no-caps />
       <q-btn label="Más Info" color="grey-8" icon="mdi-information-outline" @click="openInfo" flat class="q-mr-sm" style="height: 36px; border-radius: 8px" no-caps />
+      <q-btn label="Historial" color="secondary" icon="mdi-history" @click="openHistorial" flat style="height: 36px; border-radius: 8px" no-caps />
     </div>
 
     <div v-if="incidencia" class="row q-col-gutter-sm">
@@ -277,6 +278,7 @@
 
     <CierreDialog v-model="cierreDialog" :incidencia-id="id" @saved="onCierreSaved" />
     <InfoDialog v-model="infoDialog" :incidencia="incidencia" :detalles="detalles" />
+    <HistorialDialog v-model="historialDialog" :incidencia="incidencia" />
 
     <q-dialog v-model="editarResponsable" persistent>
       <q-card style="min-width: 380px; border-radius: 14px">
@@ -311,6 +313,7 @@ import { useQuasar } from 'quasar'
 import { fmtFecha, fmtMoney } from 'src/helpers/format'
 import CierreDialog from './CierreDialog.vue'
 import InfoDialog from './InfoDialog.vue'
+import HistorialDialog from './HistorialDialog.vue'
 
 const $q = useQuasar()
 const auth = useAuthStore()
@@ -323,6 +326,7 @@ const detalles = ref([])
 const loading = ref(true)
 const cierreDialog = ref(false)
 const infoDialog = ref(false)
+const historialDialog = ref(false)
 const editarResponsable = ref(false)
 const nuevoResponsable = ref('')
 
@@ -372,6 +376,10 @@ function openCierre() {
 
 function openInfo() {
   infoDialog.value = true
+}
+
+function openHistorial() {
+  historialDialog.value = true
 }
 
 function onCierreSaved() {
