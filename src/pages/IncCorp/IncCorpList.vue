@@ -172,7 +172,7 @@
                 </q-item-section>
                 <q-item-section>
                   <q-item-label class="text-weight-bold">
-                    INCD-{{ String(inc.ID).padStart(4, '0') }}
+                    INCD-{{ String(inc.ID).padStart(4, '0') }} - {{ inc.CLINOM || '—' }}
                   </q-item-label>
                   <q-item-label caption lines="2">
                     <template v-if="inc.CODCLI">

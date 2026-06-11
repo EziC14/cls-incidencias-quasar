@@ -37,7 +37,16 @@ export default function (ctx) {
           output: 'dist/electron'
         },
         win: {
-          target: ['nsis']
+          target: ['portable'],
+          sign: false
+        },
+        nsis: {
+          oneClick: false,
+          perMachine: false,
+          allowToChangeInstallationDirectory: true
+        },
+        portable: {
+          requestExecutionLevel: 'user'
         }
       }
     }

@@ -1,4 +1,4 @@
-const { app, BrowserWindow, screen, ipcMain } = require('electron')
+const { app, BrowserWindow, screen, ipcMain, Menu } = require('electron')
 const path = require('path')
 const odbc = require('odbc')
 
@@ -72,7 +72,10 @@ async function createWindow() {
   mainWindow.on('closed', () => { mainWindow = null })
 }
 
-app.whenReady().then(createWindow)
+app.whenReady().then(() => {
+  Menu.setApplicationMenu(null)
+  createWindow()
+})
 app.on('window-all-closed', () => app.quit())
 app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) createWindow()
