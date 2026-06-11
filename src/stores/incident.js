@@ -212,10 +212,10 @@ export const useIncidentStore = defineStore('incident', {
       )
       return { ok: true }
     },
-    async agregarComentario(idIncd, comentario, usuario) {
+    async agregarComentario(idIncd, comentario, usuario, fecha, hora) {
       await this._query(
-        `INSERT INTO CLS.TINCIDHIST (ID_INCD, COMENTARIO, USUARIO, FECHA, HORA) VALUES (?, ?, ?, YEAR(CURRENT DATE) * 10000 + MONTH(CURRENT DATE) * 100 + DAY(CURRENT DATE), HOUR(CURRENT TIME) * 10000 + MINUTE(CURRENT TIME) * 100 + SECOND(CURRENT TIME))`,
-        [idIncd, comentario, usuario]
+        `INSERT INTO CLS.TINCIDHIST (ID_INCD, COMENTARIO, USUARIO, FECHA, HORA) VALUES (?, ?, ?, ?, ?)`,
+        [idIncd, comentario, usuario, fecha, hora]
       )
       return { ok: true }
     },

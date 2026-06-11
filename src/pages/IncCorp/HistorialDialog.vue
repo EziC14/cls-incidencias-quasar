@@ -1,5 +1,5 @@
 <template>
-  <q-dialog v-model="visible">
+  <q-dialog v-model="visible" @show="onDialogShow">
     <q-card class="chat-card">
 
       <!-- Header -->
@@ -63,6 +63,7 @@
       <div class="chat-input-area">
         <div class="chat-input-wrap">
           <q-input
+            ref="inputRef"
             v-model="nuevoComentario"
             outlined
             dense
@@ -107,6 +108,7 @@ const auth = useAuthStore()
 
 const visible = ref(props.modelValue)
 const scrollArea = ref(null)
+const inputRef = ref(null)
 const comentarios = ref([])
 const nuevoComentario = ref('')
 const enviando = ref(false)
@@ -119,6 +121,10 @@ watch(visible, (v) => { emit('update:modelValue', v) })
 
 function esMio(c) {
   return c.USUARIO === auth.usuario
+}
+
+function onDialogShow() {
+  nextTick(() => inputRef.value?.focus())
 }
 
 async function cargarComentarios() {
@@ -143,7 +149,10 @@ async function enviar() {
   if (!nuevoComentario.value.trim()) return
   enviando.value = true
   try {
-    await store.agregarComentario(props.incidencia.ID, nuevoComentario.value.trim(), auth.usuario)
+    const ahora = new Date()
+    const fecha = ahora.getFullYear() * 10000 + (ahora.getMonth() + 1) * 100 + ahora.getDate()
+    const hora = ahora.getHours() * 10000 + ahora.getMinutes() * 100 + ahora.getSeconds()
+    await store.agregarComentario(props.incidencia.ID, nuevoComentario.value.trim(), auth.usuario, fecha, hora)
     nuevoComentario.value = ''
     await cargarComentarios()
   } finally {
