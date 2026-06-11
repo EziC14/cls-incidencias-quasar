@@ -178,7 +178,7 @@ async function enviar() {
   align-items: center
   justify-content: space-between
   padding: 12px 16px
-  background: #2e7d32
+  background: #415111
   flex-shrink: 0
 
 .header-left
@@ -265,7 +265,7 @@ async function enviar() {
   flex-shrink: 0
 
 .bubble-avatar--mine
-  background: #2e7d32
+  background: #415111
   color: white
 
 // ── Bubble content ───────────────────────────────────
@@ -308,16 +308,16 @@ async function enviar() {
   word-break: break-word
 
 .bubble--other
-  background: white
+  background: #F2EBDF
   color: #2d2d2d
   border-bottom-left-radius: 4px
   box-shadow: 0 1px 3px rgba(0,0,0,0.07)
 
 .bubble--mine
-  background: #2e7d32
+  background: #415111
   color: white
   border-bottom-right-radius: 4px
-  box-shadow: 0 1px 3px rgba(46,125,50,0.3)
+  box-shadow: 0 1px 3px rgba(65,81,17,0.3)
 
 // ── Input area ───────────────────────────────────────
 .chat-input-area
@@ -343,7 +343,7 @@ async function enviar() {
     max-height: 120px
 
 .send-btn
-  background: #2e7d32 !important
+  background: #FB8159 !important
   color: white !important
   flex-shrink: 0
   margin-bottom: 2px

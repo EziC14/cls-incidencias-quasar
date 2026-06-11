@@ -1,7 +1,22 @@
 :root {
-  --q-primary: #43A047;
-  --q-secondary: #2E7D32;
-  --q-accent: #66BB6A;
+  --q-primary: #D2E186;
+  --q-secondary: #FB8159;
+  --q-accent: #415111;
+}
+
+.bg-primary,
+.bg-primary.text-white {
+  color: #415111 !important;
+}
+
+.bg-primary .q-icon,
+.bg-primary.text-white .q-icon {
+  color: #415111 !important;
+}
+
+.bg-primary .q-field__label,
+.bg-primary .q-field__native {
+  color: #415111 !important;
 }
 
 body {

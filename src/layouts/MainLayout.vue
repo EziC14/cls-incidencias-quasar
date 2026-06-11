@@ -11,7 +11,7 @@
         <!-- Brand -->
         <div class="brand row items-center no-wrap">
           <div class="icon-wrap">
-            <q-icon name="mdi-hexagon-multiple" size="22px" style="color: #ef4444" />
+            <q-icon name="mdi-hexagon-multiple" size="22px" style="color: #FB8159" />
           </div>
           <Transition name="fade">
             <span v-if="!mini" class="brand-text q-ml-sm">Incidencia CLS</span>
@@ -44,7 +44,7 @@
         <div class="footer">
           <div class="footer-item">
             <div class="icon-wrap">
-              <q-avatar size="26px" style="background: #ef4444; font-size: 25px; color: white">
+              <q-avatar size="26px" style="background: #FB8159; font-size: 25px; color: white">
                 {{ auth.usuario?.charAt(0)?.toUpperCase() }}
               </q-avatar>
             </div>
@@ -109,7 +109,7 @@ function handleLogout() {
   left: 0
   height: 100vh
   z-index: 1000
-  background: #1c1c1e
+  background: #D2E186
   overflow: hidden
   transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1)
 
@@ -130,13 +130,13 @@ function handleLogout() {
 .brand-text
   font-size: 15px
   font-weight: 700
-  color: #ffffff
+  color: #415111
   white-space: nowrap
   letter-spacing: -0.2px
 
 .divider
   height: 1px
-  background: rgba(255, 255, 255, 0.08)
+  background: rgba(65, 81, 17, 0.15)
   margin: 4px 0
 
 .nav-list
@@ -148,17 +148,17 @@ function handleLogout() {
   display: flex
   align-items: center
   cursor: pointer
-  color: #8e8e93
+  color: #415111
   transition: background 0.15s, color 0.15s
 
   &:hover
-    background: rgba(255, 255, 255, 0.06) !important
-    color: #ffffff !important
+    background: rgba(65, 81, 17, 0.1) !important
+    color: #415111 !important
 
 .nav-item--active
-  background: rgba(239, 68, 68, 0.15) !important
-  color: #ef4444 !important
-  border-right: 3px solid #ef4444
+  background: rgba(251, 129, 89, 0.15) !important
+  color: #FB8159 !important
+  border-right: 3px solid #FB8159
 
 .icon-wrap
   width: 60px
@@ -184,19 +184,19 @@ function handleLogout() {
   display: flex
   align-items: center
   cursor: default
-  color: #8e8e93
+  color: #415111
   transition: background 0.15s, color 0.15s
 
   &:hover
-    background: rgba(255, 255, 255, 0.05)
-    color: #ffffff
+    background: rgba(65, 81, 17, 0.08)
+    color: #415111
 
 .footer-item--logout
   cursor: pointer
 
   &:hover
-    background: rgba(239, 68, 68, 0.10) !important
-    color: #ef4444 !important
+    background: rgba(251, 129, 89, 0.15) !important
+    color: #FB8159 !important
 
 .fade-enter-active,
 .fade-leave-active

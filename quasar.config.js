@@ -11,7 +11,12 @@ export default function (ctx) {
       iconSet: 'mdi-v7',
       lang: 'es',
       config: {
-        dark: false
+        dark: false,
+        brand: {
+          primary: '#D2E186',
+          secondary: '#FB8159',
+          accent: '#415111'
+        }
       },
       plugins: ['Dialog', 'Notify', 'Loading', 'LocalStorage']
     },

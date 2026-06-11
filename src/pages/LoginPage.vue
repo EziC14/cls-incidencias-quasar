@@ -3,7 +3,7 @@
     <div class="login-card">
       <div class="login-header">
         <div class="login-icon">
-          <q-icon name="mdi-hexagon-multiple" size="28px" style="color: #ef4444" />
+            <q-icon name="mdi-hexagon-multiple" size="28px" style="color: #D2E186" />
         </div>
         <div class="login-title">Incidencia CLS</div>
         <div class="login-subtitle">Inicia sesión para continuar</div>
@@ -126,23 +126,23 @@ async function handleLogin() {
 .login-btn {
   height: 48px;
   border-radius: 10px;
-  background: #ef4444 !important;
+  background: #FB8159 !important;
   color: white;
   font-size: 14px;
   font-weight: 600;
   margin-top: 4px;
 
   &:hover {
-    background: #dc2626 !important;
+    background: #e06a45 !important;
   }
 }
 
 .login-error {
   text-align: center;
-  color: #ef4444;
+  color: #FB8159;
   font-size: 13px;
   padding: 8px;
-  background: rgba(239, 68, 68, 0.1);
+  background: rgba(251, 129, 89, 0.1);
   border-radius: 8px;
 }
 </style>
