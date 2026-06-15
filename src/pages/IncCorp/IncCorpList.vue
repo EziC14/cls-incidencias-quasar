@@ -73,7 +73,7 @@
               />
               <q-select
                 v-model="filtros.responsable"
-                :options="store.usuarios"
+                :options="responsableOptions"
                 label="Responsable"
                 outlined dense class="col-3"
                 clearable hide-bottom
@@ -387,6 +387,11 @@ const asignando = ref(false)
 
 const totalPaginas = computed(() => Math.ceil(total.value / POR_PAGINA))
 
+const responsableOptions = computed(() => [
+  { label: '(Sin asignar)', value: '__UNASSIGNED__' },
+  ...store.usuarios.map(u => ({ label: u, value: u }))
+])
+
 const filtros = ref({
   nroIncd: '', codVend: '', codCli: '',
   tipoInc: null, estado: null, usuario: null, responsable: null,
@@ -431,7 +436,11 @@ onMounted(async () => {
 async function cargarPagina(pagina) {
   buscando.value = true
   try {
-    const f = { ...filtros.value, estado: filtros.value.estado?.value ?? filtros.value.estado }
+    const f = {
+      ...filtros.value,
+      estado: filtros.value.estado?.value ?? filtros.value.estado,
+      responsable: filtros.value.responsable?.value ?? filtros.value.responsable
+    }
     const [rows, count] = await Promise.all([
       store.listarIncidencias(f, pagina, POR_PAGINA),
       pagina === 1 ? store.contarIncidencias(f) : Promise.resolve(total.value)

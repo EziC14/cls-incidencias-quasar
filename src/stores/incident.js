@@ -108,7 +108,8 @@ export const useIncidentStore = defineStore('incident', {
       if (filtros.tipoInc)    { sql += ' AND H.TIPINCD = ?';           params.push(filtros.tipoInc) }
       if (filtros.estado)     { sql += ' AND H.ESTADOINCD = ?';        params.push(filtros.estado) }
       if (filtros.usuario)    { sql += ' AND H.USUARIOCREA = ?';       params.push(filtros.usuario) }
-      if (filtros.responsable) { sql += ' AND H.USRENC = ?';            params.push(filtros.responsable) }
+      if (filtros.responsable === '__UNASSIGNED__') { sql += " AND (H.USRENC IS NULL OR H.USRENC = '')" }
+      else if (filtros.responsable) { sql += ' AND H.USRENC = ?';            params.push(filtros.responsable) }
       if (filtros.pedidoSerie) { sql += ' AND H.PHPVTA = ?';           params.push(filtros.pedidoSerie) }
       if (filtros.pedidoNro)  { sql += ' AND H.PHNUME = ?';            params.push(filtros.pedidoNro) }
       if (filtros.guia)       { sql += ' AND D.PDGUIA = ?';            params.push(filtros.guia) }
