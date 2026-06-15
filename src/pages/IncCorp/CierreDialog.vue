@@ -13,16 +13,19 @@
         <div class="row q-col-gutter-sm">
           <div class="col-6">
             <div class="text-caption text-grey-7 q-mb-xs">Tipo Incidencia Real</div>
-            <q-select v-model="tipoInc" :options="store.tipos" option-value="IDTIPO" option-label="DESCTIPO" outlined dense hide-bottom />
+            <q-select v-model="tipoInc" :options="store.tipos" option-value="IDTIPO" option-label="DESCTIPO" outlined dense hide-bottom emit-value map-options />
           </div>
           <div class="col-6">
-            <div class="text-caption text-grey-7 q-mb-xs">Fecha de Cierre</div>
-            <q-input v-model="fecha" outlined dense type="date" hide-bottom />
+            <div class="text-caption text-grey-7 q-mb-xs">Tipo Cierre</div>
+            <q-select v-model="tipoCierre" :options="store.tiposCierre" option-value="IDTIPO" option-label="DESCTIPO" outlined dense hide-bottom emit-value map-options />
           </div>
         </div>
         <div class="q-mt-sm">
-          <div class="text-caption text-grey-7 q-mb-xs">Tipo Cierre</div>
-          <q-select v-model="tipoCierre" :options="store.tiposCierre" option-value="IDTIPO" option-label="DESCTIPO" outlined dense clearable hide-bottom />
+          <div class="text-caption text-grey-7 q-mb-xs">Fecha de cierre</div>
+          <div class="text-body1 text-weight-medium bg-grey-2 q-px-sm q-py-sm" style="border-radius: 4px">
+            <q-icon name="mdi-calendar" class="q-mr-xs text-grey-6" size="14px" />
+            {{ fecha }}
+          </div>
         </div>
         <div class="q-mt-sm">
           <div class="text-caption text-grey-7 q-mb-xs">Motivo de Cierre</div>
@@ -69,8 +72,8 @@ onMounted(() => {
 })
 
 async function guardar() {
-  if (!tipoInc.value || !motivo.value) {
-    $q.notify({ type: 'warning', message: 'Complete los campos requeridos' })
+  if (!tipoInc.value || !tipoCierre.value || !motivo.value) {
+    $q.notify({ type: 'warning', message: 'Complete todos los campos' })
     return
   }
   guardando.value = true
@@ -78,7 +81,7 @@ async function guardar() {
     await store.cerrarIncidencia({
       id: props.incidenciaId,
       usuario: auth.usuario,
-      fecha: fecha.value,
+      fecha: date.formatDate(Date.now(), 'YYYYMMDD'),
       motivo: motivo.value,
       tipo: tipoInc.value,
       tipcierre: tipoCierre.value
