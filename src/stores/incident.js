@@ -164,16 +164,18 @@ export const useIncidentStore = defineStore('incident', {
       return rows[0] || {}
     },
     async registrarCabecera(body) {
+      const t = (v, len) => (v == null ? '' : String(v)).slice(0, len)
       await this._query(
         `INSERT INTO CLS.TINCIDENCIAH (CANAL, CODVEND, CODCLI, PHPVTA, PHNUME, FECHAINCID, MONTDEV, MONEDA, NOMCONTACTO, NUMTLFO, DIRECCONT, EMAILCONT, COMENTARIO, TIPINCD, ESTADOINCD, USUARIOCREA, FECHACREA, USRENC, EJERCICIO, PERIODO, ALMACEN, VALE) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '22', ?, TO_CHAR(CURRENT DATE, 'YYYYMMDD'), ?, ?, ?, ?, ?)`,
-        [body.canal, body.codvend, body.codcli, body.phpvta, body.phnume, body.fechaincid, body.montdev, body.moneda, body.nomcontacto, body.numtlfo, body.direccontact, body.emailcontact, body.comentario, body.tipincd, body.usuariocrea, body.usrenc, body.ejercicio, body.periodo, body.almacen, body.vale]
+        [t(body.canal, 10), t(body.codvend, 20), t(body.codcli, 20), body.phpvta, body.phnume, body.fechaincid, body.montdev, t(body.moneda, 2), t(body.nomcontacto, 50), t(body.numtlfo, 20), t(body.direccontact, 100), t(body.emailcontact, 60), t(body.comentario, 200), t(body.tipincd, 10), t(body.usuariocrea, 20), t(body.usrenc, 20), body.ejercicio, body.periodo, t(body.almacen, 10), body.vale]
       )
       return { ok: true }
     },
     async registrarDetalle(body) {
+      const t = (v, len) => (v == null ? '' : String(v)).slice(0, len)
       await this._query(
         `INSERT INTO CLS.TINCIDENCIAD (ID_INDH, ITEMINCD, CODPROD, ARTABC, ARTMAR, PRECPROD, CANTDEV, ARTMED, VALE, CANTVALE) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [body.id_indh, body.itemincd, body.codprod, body.artabc, body.artmar, body.precprod, body.cantdev, body.artmed, body.vale, body.cantvale]
+        [body.id_indh, body.itemincd, t(body.codprod, 20), t(body.artabc, 10), t(body.artmar, 20), body.precprod, body.cantdev, t(body.artmed, 10), body.vale, body.cantvale]
       )
       return { ok: true }
     },
@@ -211,6 +213,86 @@ export const useIncidentStore = defineStore('incident', {
         [usrenc, usuario, id]
       )
       return { ok: true }
+    },
+    async importarExcel(rows, usuarioReg, onProgress) {
+      const auth = useAuthStore()
+      let ok = 0, err = 0
+      const errores = []
+
+      for (let i = 0; i < rows.length; i++) {
+        const r = rows[i]
+        const ped = await this.searchPedido(r.serie, r.correlativo)
+        if (!ped.ok) {
+          err++
+          errores.push(`Fila ${i + 2}: ${ped.error}`)
+          continue
+        }
+        const det = await this.searchPedidoDetalle(r.serie, r.correlativo)
+        if (!det.ok || det.data.length === 0) {
+          err++
+          errores.push(`Fila ${i + 2}: Sin productos en pedido`)
+          continue
+        }
+        const cab = ped.data
+        const canal = cab.PHREF1 || ''
+        const codvend = cab.PHUSAP || ''
+        const codcli = cab.PHCLIE
+        const moneda = cab.PHMONE === 'SOLES' ? '0' : '1'
+        const fechaincid = r.fecha.replace(/-/g, '')
+        const monto = det.data.reduce((s, d) => s + (Number(d.PDCANT) || 0) * (Number(d.PDUNIT) || 0), 0)
+
+        try {
+          await this.registrarCabecera({
+            canal, codvend, codcli,
+            phpvta: r.serie, phnume: r.correlativo,
+            fechaincid, montdev: monto, moneda,
+            nomcontacto: r.contacto, numtlfo: r.telefono,
+            direccontact: r.direccion, emailcontact: r.email,
+            comentario: r.motivo,
+            tipincd: r.tipoIncidencia,
+            usuariocrea: usuarioReg, usrenc: '',
+            ejercicio: 0, periodo: 0, almacen: '0', vale: 0
+          })
+        } catch (e) {
+          err++
+          errores.push(`Fila ${i + 2}: Error al registrar cabecera - ${e.message}`)
+          continue
+        }
+
+        const id = await this.obtenerId(r.serie, r.correlativo, codcli)
+        if (!id) {
+          err++
+          errores.push(`Fila ${i + 2}: Cabecera registrada pero no se obtuvo ID`)
+          continue
+        }
+
+        let item = 0
+        for (const d of det.data) {
+          item++
+          const producto = (d.COD_ARTICULO || d.PDARTI || '').toString().trim()
+          const undmed = (d.ARTMED || d.PDUNIT || '').toString().trim()
+          const marca = (d.ARTMAR || '').toString().trim()
+          const categoria = (d.ARTABC || '').toString().trim()
+          const precio = Number(d.PDUNIT || d.PRECIO || 0)
+          const cantSolicitada = Number(d.PDCANT || 0)
+          const vale = (d.VALE || '1').toString().trim() || '1'
+          const cantvale = (d.CANTREQ || '1').toString().trim() || '1'
+
+          try {
+            await this.registrarDetalle({
+              id_indh: id, itemincd: item, codprod: producto,
+              artabc: categoria, artmar: marca,
+              precprod: precio, cantdev: cantSolicitada,
+              artmed: undmed, vale: Number(vale), cantvale: Number(cantvale)
+            })
+          } catch (e) {
+            errores.push(`Fila ${i + 2} Item ${item}: Error registro detalle - ${e.message}`)
+          }
+        }
+        ok++
+        if (onProgress) onProgress(i + 1, rows.length, r.serie, r.correlativo)
+      }
+      return { ok, err, errores }
     },
     async agregarComentario(idIncd, comentario, usuario, fecha, hora) {
       await this._query(

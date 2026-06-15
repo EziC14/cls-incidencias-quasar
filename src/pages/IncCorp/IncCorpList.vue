@@ -36,11 +36,11 @@
             @click="asignarSelected"
           />
           <q-btn
-            label="Nueva Incidencia"
-            color="primary"
-            icon="mdi-plus"
+            label="Importar Excel"
+            color="secondary"
+            icon="mdi-file-excel"
             unelevated
-            @click="$router.push('/inc-corp/registrar')"
+            @click="openImport"
           />
         </div>
 
@@ -278,6 +278,81 @@
       </q-card-section>
     </q-card>
   </q-dialog>
+
+  <!-- Importar Excel dialog -->
+  <q-dialog v-model="showImport" persistent>
+    <q-card class="import-dialog">
+      <q-card-section class="bg-secondary text-white q-py-md">
+        <div class="row items-center">
+          <div class="col-auto q-pr-sm">
+            <div class="bg-white rounded-borders flex flex-center" style="width: 36px; height: 36px">
+              <q-icon name="mdi-file-excel" color="secondary" size="20px" />
+            </div>
+          </div>
+          <div class="col">
+            <div class="text-weight-bold text-body1">Importar desde Excel</div>
+            <div class="text-caption text-white text-opacity-70">Carga masiva de incidencias corporativas</div>
+          </div>
+          <div class="col-auto">
+            <q-btn flat dense icon="mdi-close" v-close-popup @click="resetImport" />
+          </div>
+        </div>
+      </q-card-section>
+
+      <q-card-section v-if="!importRunning && !importResult" class="q-px-lg q-py-lg">
+        <div class="text-caption text-grey-6 q-mb-md">
+          Columnas: SERIE, CORRELATIVO, TIPO_INCIDENCIA, FECHA_INCIDENCIA, CONTACTO, DIR_CONTACTO, TLF_CONTACTO, EMAIL_CONTACTO, MOTIVO
+        </div>
+
+        <q-file
+          ref="fileInput"
+          v-model="importFile"
+          label="Seleccionar archivo .xlsx"
+          accept=".xlsx"
+          outlined
+          :disable="importRunning"
+          hide-bottom
+        >
+          <template v-slot:prepend>
+            <q-icon name="mdi-file-excel" color="secondary" />
+          </template>
+        </q-file>
+      </q-card-section>
+
+      <q-card-section v-if="importRunning" class="q-px-lg q-py-lg">
+        <div class="text-center q-py-md">
+          <q-circular-progress :value="importProgress * 100" size="80px" :thickness="8" color="secondary" track-color="grey-2" class="q-mb-md" show-value font-size="20px">
+            {{ Math.round(importProgress * 100) }}%
+          </q-circular-progress>
+          <div class="text-body2 text-grey-8 q-mb-xs">{{ importProcessed }} de {{ importTotal }} registros</div>
+          <q-linear-progress :value="importProgress" color="secondary" size="4px" rounded class="q-mb-sm" />
+          <div v-if="importCurrent" class="text-caption text-grey-5">Pedido {{ importCurrent.serie }}-{{ importCurrent.correlativo }}</div>
+        </div>
+      </q-card-section>
+
+      <q-card-section v-if="importResult" class="q-px-lg q-py-lg">
+        <div class="text-center q-mb-md">
+          <q-icon :name="importResult.err === 0 ? 'mdi-check-circle' : 'mdi-alert-circle'" :color="importResult.err === 0 ? 'positive' : 'warning'" size="56px" />
+          <div class="text-h6 text-weight-bold text-grey-8 q-mt-sm">{{ importResult.ok }} registrada{{ importResult.ok !== 1 ? 's' : '' }}</div>
+          <div v-if="importResult.err" class="text-body2 text-negative">{{ importResult.err }} con error{{ importResult.err !== 1 ? 'es' : '' }}</div>
+        </div>
+
+        <div v-if="importResult.errores.length" style="max-height: 160px; overflow-y: auto">
+          <div v-for="(e, i) in importResult.errores" :key="i" class="q-py-xs text-caption text-negative">
+            {{ e }}
+          </div>
+        </div>
+      </q-card-section>
+
+      <q-card-section class="bg-grey-1 q-py-md q-px-lg">
+        <div class="row justify-end q-gutter-md">
+          <q-btn v-if="!importResult" label="Cancelar" flat v-close-popup @click="resetImport" no-caps class="q-px-md" />
+          <q-btn v-if="!importResult" label="Importar archivo" color="secondary" unelevated :disabled="!importFile" :loading="importRunning" @click="executeImport" no-caps class="q-px-lg" icon="mdi-upload" />
+          <q-btn v-if="importResult" label="Cerrar" color="secondary" unelevated v-close-popup @click="resetImport" no-caps class="q-px-lg" icon="mdi-check" />
+        </div>
+      </q-card-section>
+    </q-card>
+  </q-dialog>
 </template>
 
 <script setup>
@@ -287,6 +362,7 @@ import { useQuasar } from 'quasar'
 import { fmtFecha } from 'src/helpers/format'
 import { useIncidentStore } from 'stores/incident'
 import { useAuthStore } from 'stores/auth'
+import * as XLSX from 'xlsx'
 
 const $q = useQuasar()
 const router = useRouter()
@@ -435,6 +511,91 @@ async function executeDelete() {
   }
 }
 
+// ── Importar Excel ──────────────────────────────────────────────────
+const showImport = ref(false)
+const importFile = ref(null)
+const importRunning = ref(false)
+const importProgress = ref(0)
+const importProcessed = ref(0)
+const importTotal = ref(0)
+const importCurrent = ref(null)
+const importResult = ref(null)
+
+function openImport() {
+  resetImport()
+  showImport.value = true
+}
+function resetImport() {
+  importFile.value = null
+  importRunning.value = false
+  importProgress.value = 0
+  importProcessed.value = 0
+  importTotal.value = 0
+  importCurrent.value = null
+  importResult.value = null
+}
+
+async function executeImport() {
+  if (!importFile.value) return
+  const file = importFile.value
+  const reader = new FileReader()
+  importRunning.value = true
+
+  reader.onload = async (e) => {
+    try {
+      const data = new Uint8Array(e.target.result)
+      const workbook = XLSX.read(data, { type: 'array' })
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const json = XLSX.utils.sheet_to_json(sheet, { defval: '' })
+
+      if (json.length === 0) {
+        $q.notify({ type: 'warning', message: 'El archivo no contiene datos' })
+        importRunning.value = false
+        return
+      }
+
+      const headers = Object.keys(json[0])
+      const esperados = ['SERIE', 'CORRELATIVO', 'TIPO_INCIDENCIA', 'FECHA_INCIDENCIA', 'CONTACTO', 'DIR_CONTACTO', 'TLF_CONTACTO', 'EMAIL_CONTACTO', 'MOTIVO']
+      const faltantes = esperados.filter(h => !headers.some(x => x.toUpperCase() === h))
+      if (faltantes.length) {
+        $q.notify({ type: 'negative', message: `Faltan columnas: ${faltantes.join(', ')}` })
+        importRunning.value = false
+        return
+      }
+
+      const rows = json.map(r => ({
+        serie: String(r.SERIE || r.serie || '').trim(),
+        correlativo: String(r.CORRELATIVO || r.correlativo || '').trim(),
+        tipoIncidencia: String(r.TIPO_INCIDENCIA || r.tipo_incidencia || '').trim(),
+        fecha: String(r.FECHA_INCIDENCIA || r.fecha_incidencia || '').trim(),
+        contacto: String(r.CONTACTO || r.contacto || '').trim(),
+        direccion: String(r.DIR_CONTACTO || r.dir_contacto || '').trim(),
+        telefono: String(r.TLF_CONTACTO || r.tlf_contacto || '').trim(),
+        email: String(r.EMAIL_CONTACTO || r.email_contacto || '').trim(),
+        motivo: String(r.MOTIVO || r.motivo || '').trim(),
+      }))
+
+      importTotal.value = rows.length
+      const result = await store.importarExcel(rows, auth.usuario, (proc, total, serie, correlativo) => {
+        importProcessed.value = proc
+        importProgress.value = proc / total
+        importCurrent.value = { serie, correlativo }
+      })
+      importResult.value = result
+      if (result.ok > 0) {
+        $q.notify({ type: 'positive', message: `${result.ok} incidencia(s) importadas correctamente` })
+        await cargarPagina(1)
+      }
+    } catch (err) {
+      $q.notify({ type: 'negative', message: `Error al leer Excel: ${err.message}` })
+    } finally {
+      importRunning.value = false
+    }
+  }
+
+  reader.readAsArrayBuffer(file)
+}
+
 async function executeAsignar() {
   if (!asignarUsuario.value) {
     $q.notify({ type: 'warning', message: 'Seleccione un responsable' })
@@ -457,3 +618,12 @@ async function executeAsignar() {
   }
 }
 </script>
+
+<style scoped>
+.import-dialog {
+  width: 480px;
+  max-width: 90vw;
+  border-radius: 16px !important;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+}
+</style>

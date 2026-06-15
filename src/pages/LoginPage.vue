@@ -46,7 +46,7 @@ async function handleLogin() {
     await auth.login(usuario.value, clave.value)
     router.push('/inc-corp/listar')
   } catch (err) {
-    error.value = err.response?.data?.error || 'Usuario o contraseña incorrectos'
+    error.value = err?.message || err || 'Error de conexión'
   } finally {
     loading.value = false
   }

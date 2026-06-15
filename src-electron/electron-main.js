@@ -55,7 +55,7 @@ async function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      preload: path.join(process.env.QUASAR_ELECTRON_PRELOAD_FOLDER, 'electron-preload' + process.env.QUASAR_ELECTRON_PRELOAD_EXTENSION)
+      preload: path.join(app.getAppPath(), 'preload', 'electron-preload.cjs')
     },
     frame: true,
     show: false
