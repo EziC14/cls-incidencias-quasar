@@ -137,83 +137,87 @@
         </q-dialog>
 
         <!-- Resultados -->
-        <q-card flat bordered>
-          <q-card-section class="bg-grey-2">
-            <div class="row items-center">
-              <q-icon name="mdi-format-list-bulleted" size="sm" class="q-mr-sm" />
-              <span class="text-weight-bold">Resultados</span>
-              <q-space />
-              <span class="text-caption text-grey-7">{{ total }} incidencias</span>
+        <div>
+          <div class="row items-center q-mb-sm q-px-sm">
+            <div class="text-subtitle2 text-grey-7">
+              <q-icon name="mdi-format-list-bulleted" size="18px" class="q-mr-sm" />
+              {{ total }} incidencias
             </div>
-          </q-card-section>
+          </div>
 
-          <q-card-section class="q-pa-none">
-            <q-list separator>
-              <q-item
-                v-for="inc in incidencias"
-                :key="inc.ID"
-                clickable v-ripple
-                @click="abrirDetalle(inc)"
-                class="q-py-sm"
-              >
-                <q-item-section side>
+          <div v-if="!incidencias.length && !buscando" class="text-center text-grey-4 q-py-xl">
+            <q-icon name="mdi-inbox" size="56px" />
+            <div class="q-mt-sm text-body2">No se encontraron incidencias</div>
+          </div>
+
+          <q-card
+            v-for="inc in incidencias"
+            :key="inc.ID"
+            class="q-mb-sm inc-card cursor-pointer"
+            flat
+            @click="abrirDetalle(inc)"
+          >
+            <q-card-section class="q-pa-md">
+              <div class="row no-wrap">
+                <div class="col-auto flex items-center q-pr-md">
                   <q-checkbox
                     :model-value="selected.includes(inc.ID)"
                     @click.stop
                     @update:model-value="toggleSelection(inc.ID)"
                     dense
                   />
-                </q-item-section>
-
-                <q-item-section side>
-                  <q-badge rounded :color="getEstadoColor(inc.ESTADOINCD)" class="q-px-sm q-py-xs text-weight-medium">
-                    {{ getEstadoLabel(inc.ESTADOINCD) }}
-                  </q-badge>
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label class="text-weight-bold">
-                    INCD-{{ String(inc.ID).padStart(4, '0') }} - {{ inc.CLINOM || '—' }}
-                  </q-item-label>
-                  <q-item-label caption lines="2">
-                    <template v-if="inc.CODCLI">
-                      <q-icon name="mdi-account" size="xs" class="q-mr-xs" />{{ inc.CODCLI }}
-                      <q-icon name="mdi-circle-small" size="xs" />
-                    </template>
-                    <template v-if="inc.PHPVTA">
-                      Pedido {{ inc.PHPVTA }}-{{ inc.PHNUME }}
-                      <q-icon name="mdi-circle-small" size="xs" />
-                    </template>
-                    <template v-if="inc.MONTDEV">
-                      S/ {{ inc.MONTDEV }}
-                      <q-icon name="mdi-circle-small" size="xs" />
-                    </template>
-                    {{ inc.USUARIOCREA }}
-                    <template v-if="inc.USRENC">
-                      <q-icon name="mdi-circle-small" size="xs" />
-                      <q-icon name="mdi-account" size="xs" class="q-mr-xs" />{{ inc.USRENC }}
-                    </template>
-                  </q-item-label>
-                </q-item-section>
-                <q-item-section side>
-                  <div class="text-right">
-                    <div class="text-caption text-grey-7">{{ fmtFecha(inc.FECHAINCID) }}</div>
-                    <div class="text-caption text-grey-5">Creado: {{ fmtFecha(inc.FECHACREA) }}</div>
-                    <div class="text-caption text-weight-medium text-primary q-mt-xs">{{ inc.DESCTIPO || inc.TIPINCD }}</div>
+                </div>
+                <div class="col">
+                  <div class="row items-center">
+                    <span class="text-weight-bold" style="font-size: 1rem; color: #37474f">
+                      INCD-{{ String(inc.ID).padStart(5, '0') }}
+                    </span>
+                    <q-space />
+                    <q-badge rounded :color="getEstadoColor(inc.ESTADOINCD)" class="q-px-sm q-py-xs text-weight-medium">
+                      {{ getEstadoLabel(inc.ESTADOINCD) }}
+                    </q-badge>
                   </div>
-                </q-item-section>
-              </q-item>
-
-              <q-item v-if="incidencias.length === 0 && !buscando">
-                <q-item-section class="text-center text-grey-5 q-py-xl">
-                  <q-icon name="mdi-inbox" size="48px" />
-                  <div class="q-mt-sm">No se encontraron incidencias</div>
-                </q-item-section>
-              </q-item>
-            </q-list>
-          </q-card-section>
+                  <div class="q-mt-xs" style="font-size: 0.95rem">
+                    <span class="text-weight-bold" style="color: #EF6C00">{{ inc.CLINOM || 'Sin cliente' }}</span>
+                  </div>
+                  <div class="text-caption text-grey-6 q-mt-xs">
+                    Pedido {{ inc.PHPVTA }}-{{ inc.PHNUME }}
+                    <q-icon name="mdi-circle-small" size="14px" />
+                    {{ inc.DESCTIPO || inc.TIPINCD }}
+                    <template v-if="inc.MONTDEV">
+                      <q-icon name="mdi-circle-small" size="14px" />
+                      S/ {{ Number(inc.MONTDEV).toLocaleString('es-PE', { minimumFractionDigits: 2 }) }}
+                    </template>
+                  </div>
+                  <div class="row items-center q-mt-sm q-gutter-x-md">
+                    <div class="flex items-center text-caption" style="color: #78909c">
+                      <q-icon name="mdi-calendar" size="14px" class="q-mr-xs" />
+                      <span class="text-weight-medium">{{ fmtFecha(inc.FECHAINCID) }}</span>
+                    </div>
+                    <div class="flex items-center text-caption" style="color: #90a4ae">
+                      <q-icon name="mdi-calendar-plus" size="14px" class="q-mr-xs" />
+                      {{ fmtFecha(inc.FECHACREA) }}
+                    </div>
+                    <div class="flex items-center text-caption" style="color: #90a4ae">
+                      <q-icon name="mdi-account-plus" size="14px" class="q-mr-xs" />
+                      {{ inc.USUARIOCREA }}
+                    </div>
+                    <div v-if="inc.USRENC" class="flex items-center text-caption text-weight-medium" style="color: #EF6C00">
+                      <q-icon name="mdi-account-check" size="14px" class="q-mr-xs" />
+                      {{ inc.USRENC }}
+                    </div>
+                    <div v-else class="flex items-center text-caption" style="color: #b0bec5">
+                      <q-icon name="mdi-account-off" size="14px" class="q-mr-xs" />
+                      Sin responsable
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </q-card-section>
+          </q-card>
 
           <!-- Paginación -->
-          <q-card-section v-if="totalPaginas > 1" class="row justify-center items-center q-py-sm bg-grey-1">
+          <div v-if="totalPaginas > 1" class="row justify-center items-center q-py-md">
             <q-pagination
               v-model="paginaActual"
               :max="totalPaginas"
@@ -224,10 +228,10 @@
               @update:model-value="cambiarPagina"
             />
             <div class="text-caption text-grey-6 q-ml-md">
-              Página {{ paginaActual }} de {{ totalPaginas }}
+              {{ paginaActual }} / {{ totalPaginas }}
             </div>
-          </q-card-section>
-        </q-card>
+          </div>
+        </div>
 
       </div>
     </template>
@@ -634,5 +638,14 @@ async function executeAsignar() {
   max-width: 90vw;
   border-radius: 16px !important;
   box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+}
+.inc-card {
+  border-radius: 12px !important;
+  border: 1px solid #e8e8e8 !important;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.inc-card:hover {
+  border-color: #D2E186 !important;
+  box-shadow: 0 2px 8px rgba(210, 225, 134, 0.3);
 }
 </style>
