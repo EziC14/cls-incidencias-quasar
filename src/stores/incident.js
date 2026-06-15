@@ -240,7 +240,19 @@ export const useIncidentStore = defineStore('incident', {
         const codvend = cab.PHUSAP || ''
         const codcli = cab.PHCLIE
         const moneda = cab.PHMONE === 'SOLES' ? '0' : '1'
-        const fechaincid = r.fecha.replace(/-/g, '')
+        const fechaincid = (() => {
+          const v = r.fecha
+          if (v == null || v === '') return ''
+          if (typeof v === 'number') {
+            const d = new Date((v - 25569) * 86400 * 1000)
+            if (!isNaN(d)) return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`
+          }
+          const s = String(v).trim()
+          if (/^\d{8}$/.test(s)) return s
+          const m = s.match(/^(\d{2})[\/-](\d{2})[\/-](\d{4})$/)
+          if (m) return `${m[3]}${m[2]}${m[1]}`
+          return s.replace(/\D/g, '')
+        })()
         const monto = det.data.reduce((s, d) => s + (Number(d.PDCANT) || 0) * (Number(d.PDUNIT) || 0), 0)
 
         try {

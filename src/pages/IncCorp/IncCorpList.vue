@@ -548,6 +548,20 @@ function resetImport() {
   importResult.value = null
 }
 
+function excelDateToYYYYMMDD(val) {
+  if (val == null || val === '') return ''
+  if (typeof val === 'number') {
+    const d = new Date((val - 25569) * 86400 * 1000)
+    if (isNaN(d)) return String(val)
+    return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`
+  }
+  const s = String(val).trim()
+  if (/^\d{8}$/.test(s)) return s
+  const m = s.match(/^(\d{2})[\/-](\d{2})[\/-](\d{4})$/)
+  if (m) return `${m[3]}${m[2]}${m[1]}`
+  return s.replace(/\D/g, '')
+}
+
 async function executeImport() {
   if (!importFile.value) return
   const file = importFile.value
@@ -580,7 +594,7 @@ async function executeImport() {
         serie: String(r.SERIE || r.serie || '').trim(),
         correlativo: String(r.CORRELATIVO || r.correlativo || '').trim(),
         tipoIncidencia: String(r.TIPO_INCIDENCIA || r.tipo_incidencia || '').trim(),
-        fecha: String(r.FECHA_INCIDENCIA || r.fecha_incidencia || '').trim(),
+        fecha: excelDateToYYYYMMDD(r.FECHA_INCIDENCIA ?? r.fecha_incidencia ?? ''),
         contacto: String(r.CONTACTO || r.contacto || '').trim(),
         direccion: String(r.DIR_CONTACTO || r.dir_contacto || '').trim(),
         telefono: String(r.TLF_CONTACTO || r.tlf_contacto || '').trim(),
