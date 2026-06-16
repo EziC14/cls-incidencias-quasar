@@ -102,38 +102,7 @@ export const useIncidentStore = defineStore('incident', {
     },
     async exportarIncidencias(filtros) {
       const headers = await this.listarIncidencias(filtros, 1, 9999999)
-      const ids = headers.map(r => r.ID)
-      if (ids.length === 0) return []
-      const placeholders = ids.map(() => '?').join(',')
-      const details = await this._query(
-        `SELECT DET.ID_INDH, DET.CODPROD, DET.ARTMAR, A.ARTDES, DET.ITEMINCD
-         FROM CLS.TINCIDENCIAD DET
-         LEFT JOIN SPEED400CS.TARTI A ON A.ARTCOD = DET.CODPROD
-         WHERE DET.ID_INDH IN (${placeholders})
-         ORDER BY DET.ID_INDH DESC, DET.ITEMINCD ASC`,
-        ids
-      )
-      const detMap = {}
-      for (const d of details) {
-        if (!detMap[d.ID_INDH]) detMap[d.ID_INDH] = []
-        detMap[d.ID_INDH].push(d)
-      }
-      const out = []
-      for (const h of headers) {
-        const dets = detMap[h.ID] || [{ CODPROD: '', ARTMAR: '', ARTDES: '' }]
-        for (const d of dets) {
-          out.push({
-            ID: h.ID, CANAL: h.CANAL, CODVEND: h.CODVEND, CODCLI: h.CODCLI,
-            PHPVTA: h.PHPVTA, PHNUME: h.PHNUME,
-            FECHAINCID: h.FECHAINCID, FECHACREA: h.FECHACREA, MONEDA: h.MONEDA,
-            COMENTARIO: h.COMENTARIO, ESTADOINCD: h.ESTADOINCD,
-            USUARIOCREA: h.USUARIOCREA, USRENC: h.USRENC,
-            DESCTIPO: h.DESCTIPO, CLINOM: h.CLINOM,
-            CODPROD: d.CODPROD, ARTMAR: d.ARTMAR, ARTDES: d.ARTDES
-          })
-        }
-      }
-      return out
+      return headers
     },
 
     _aplicarFiltros(sql, params, filtros) {

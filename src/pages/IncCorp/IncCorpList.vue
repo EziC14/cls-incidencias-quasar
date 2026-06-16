@@ -377,6 +377,7 @@ import { fmtFecha } from 'src/helpers/format'
 import { useIncidentStore } from 'stores/incident'
 import { useAuthStore } from 'stores/auth'
 import * as XLSX from 'xlsx'
+import ExcelJS from 'exceljs'
 
 const $q = useQuasar()
 const router = useRouter()
@@ -646,47 +647,107 @@ async function exportar() {
   try {
     const data = await store.exportarIncidencias(f)
     const labels = { '22': 'Pendiente', '21': 'Atendido', '23': 'Refacturado', '24': 'Pedido Anulado', '25': 'Emisión NC' }
+    const meses = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SETIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE']
 
-    const rows = data.map((r, i) => ({
-      'N°': i + 1,
-      'N° INCIDENCIA': `INCD-${String(r.ID).padStart(5, '0')}`,
-      'MES': String(r.FECHAINCID).substring(4, 6) || '',
-      'AÑO': String(r.FECHAINCID).substring(0, 4) || '',
-      'FECHA INGRESO INCID SISTEMA': r.FECHACREA ? `${String(r.FECHACREA).substring(6,8)}/${String(r.FECHACREA).substring(4,6)}/${String(r.FECHACREA).substring(0,4)}` : '',
-      'CD CLIENTE': r.CODCLI,
-      'CLIENTE': r.CLINOM || '',
-      'AREA': r.CANAL || '',
-      'TIPO DE INCIDENCIA': r.DESCTIPO || '',
-      'SR': r.PHPVTA,
-      'PEDIDO': r.PHNUME,
-      'RESPONSABLE': r.USRENC || '',
-      'USUARIO': r.USUARIOCREA || '',
-      'CÓDIGO': r.CODPROD || '',
-      'PRODUCTO': r.ARTDES || '',
-      'MARCA': r.ARTMAR || '',
-      'ORIGEN': '',
-      'COMENTARIO': r.COMENTARIO || '',
-      'ESTADO ATC': labels[r.ESTADOINCD] || r.ESTADOINCD,
-      'RESPONSABLE ATC': r.USRENC || '',
-      'SEGUIMIENTO ATC': ''
+    const columns = [
+      { header: 'N°', key: 'N°' },
+      { header: 'N° INCIDENCIA', key: 'N° INCIDENCIA' },
+      { header: 'MES', key: 'MES' },
+      { header: 'AÑO', key: 'AÑO' },
+      { header: 'FECHA INGRESO INCID SISTEMA', key: 'FECHA INGRESO INCID SISTEMA' },
+      { header: 'CD CLIENTE', key: 'CD CLIENTE' },
+      { header: 'CLIENTE', key: 'CLIENTE' },
+      { header: 'AREA', key: 'AREA' },
+      { header: 'TIPO DE INCIDENCIA', key: 'TIPO DE INCIDENCIA' },
+      { header: 'SR', key: 'SR' },
+      { header: 'PEDIDO', key: 'PEDIDO' },
+      { header: 'RESPONSABLE', key: 'RESPONSABLE' },
+      { header: 'USUARIO', key: 'USUARIO' },
+      { header: 'ORIGEN', key: 'ORIGEN' },
+      { header: 'COMENTARIO', key: 'COMENTARIO' },
+      { header: 'CÓDIGO', key: 'CÓDIGO' },
+      { header: 'PRODUCTO', key: 'PRODUCTO' },
+      { header: 'MARCA', key: 'MARCA' },
+      { header: 'ESTADO ATC', key: 'ESTADO ATC' },
+      { header: 'RESPONSABLE ATC', key: 'RESPONSABLE ATC' },
+      { header: 'SEGUIMIENTO ATC', key: 'SEGUIMIENTO ATC' }
+    ]
+
+    const wb = new ExcelJS.Workbook()
+    wb.creator = 'Módulo Incidencias'
+    const ws = wb.addWorksheet('Incidencias')
+
+    ws.columns = columns.map(c => ({
+      header: c.header,
+      key: c.key,
+      width: c.key === 'CLIENTE' ? 40 : c.key === 'COMENTARIO' ? 50 : c.key === 'SEGUIMIENTO ATC' ? 30 : c.key === 'N° INCIDENCIA' ? 16 : c.key === 'MES' ? 12 : c.key === 'FECHA INGRESO INCID SISTEMA' ? 20 : c.key === 'CD CLIENTE' ? 12 : c.key === 'AREA' ? 10 : c.key === 'TIPO DE INCIDENCIA' ? 22 : c.key === 'PEDIDO' ? 10 : c.key === 'CÓDIGO' ? 14 : c.key === 'PRODUCTO' ? 35 : c.key === 'MARCA' ? 20 : 16
     }))
 
-    const wb = XLSX.utils.book_new()
-    const ws = XLSX.utils.json_to_sheet(rows)
+    const headerRow = ws.getRow(1)
+    headerRow.height = 30
+    headerRow.eachCell(cell => {
+      cell.font = { name: 'Calibri', bold: true, color: { argb: 'FFFFFFFF' }, size: 10 }
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF415111' } }
+      cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true }
+      cell.border = {
+        top: { style: 'thin', color: { argb: 'FFB0B0B0' } },
+        bottom: { style: 'thin', color: { argb: 'FFB0B0B0' } },
+        left: { style: 'thin', color: { argb: 'FFB0B0B0' } },
+        right: { style: 'thin', color: { argb: 'FFB0B0B0' } }
+      }
+    })
 
-    const colWidths = [
-      { wch: 5 }, { wch: 15 }, { wch: 5 }, { wch: 5 }, { wch: 15 },
-      { wch: 12 }, { wch: 35 }, { wch: 12 }, { wch: 20 }, { wch: 6 },
-      { wch: 14 }, { wch: 14 }, { wch: 12 }, { wch: 15 }, { wch: 35 },
-      { wch: 25 }, { wch: 12 }, { wch: 40 }, { wch: 18 }, { wch: 18 },
-      { wch: 25 }
-    ]
-    ws['!cols'] = colWidths
+    data.forEach((r, i) => {
+      const rowData = {
+        'N°': i + 1,
+        'N° INCIDENCIA': `INCD-${String(r.ID).padStart(5, '0')}`,
+        'MES': meses[Number(String(r.FECHAINCID).substring(4, 6)) - 1] || '',
+        'AÑO': String(r.FECHAINCID).substring(0, 4) || '',
+        'FECHA INGRESO INCID SISTEMA': r.FECHACREA ? `${String(r.FECHACREA).substring(6,8)}/${String(r.FECHACREA).substring(4,6)}/${String(r.FECHACREA).substring(0,4)}` : '',
+        'CD CLIENTE': r.CODCLI,
+        'CLIENTE': r.CLINOM || '',
+        'AREA': r.CANAL || '',
+        'TIPO DE INCIDENCIA': r.DESCTIPO || '',
+        'SR': r.PHPVTA,
+        'PEDIDO': r.PHNUME,
+        'RESPONSABLE': r.USRENC || '',
+        'USUARIO': r.USUARIOCREA || '',
+        'ORIGEN': '',
+        'COMENTARIO': r.COMENTARIO || '',
+        'CÓDIGO': '',
+        'PRODUCTO': '',
+        'MARCA': '',
+        'ESTADO ATC': labels[r.ESTADOINCD] || r.ESTADOINCD,
+        'RESPONSABLE ATC': r.USRENC || '',
+        'SEGUIMIENTO ATC': ''
+      }
+      const row = ws.addRow(rowData)
+      row.height = 22
+      const bgColor = i % 2 === 0 ? 'FFFEFEFE' : 'FFF2F5E6'
+      row.eachCell(cell => {
+        cell.font = { name: 'Calibri', size: 9 }
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgColor } }
+        cell.alignment = { vertical: 'middle', wrapText: true }
+        cell.border = {
+          top: { style: 'thin', color: { argb: 'FFE0E0E0' } },
+          bottom: { style: 'thin', color: { argb: 'FFE0E0E0' } },
+          left: { style: 'thin', color: { argb: 'FFE0E0E0' } },
+          right: { style: 'thin', color: { argb: 'FFE0E0E0' } }
+        }
+      })
+    })
 
-    XLSX.utils.book_append_sheet(wb, ws, 'Incidencias')
-    XLSX.writeFile(wb, `Incidencias_${new Date().toISOString().slice(0,10)}.xlsx`)
+    const buf = await wb.xlsx.writeBuffer()
+    const blob = new Blob([buf], { type: 'application/octet-stream' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `Incidencias_${new Date().toISOString().slice(0,10)}.xlsx`
+    a.click()
+    URL.revokeObjectURL(url)
+
     const incs = new Set(data.map(r => r.ID)).size
-    $q.notify({ type: 'positive', message: `${incs} incidencia(s) exportadas (${rows.length} líneas)` })
+    $q.notify({ type: 'positive', message: `${incs} incidencia(s) exportadas (${data.length} líneas)` })
   } catch (err) {
     $q.notify({ type: 'negative', message: `Error al exportar: ${err.message}` })
   } finally {
