@@ -36,6 +36,16 @@
             @click="asignarSelected"
           />
           <q-btn
+            v-if="incidencias.length > 0"
+            label="Exportar"
+            color="accent"
+            icon="mdi-file-export"
+            unelevated
+            class="q-mr-sm"
+            :loading="exportando"
+            @click="exportar"
+          />
+          <q-btn
             label="Importar Excel"
             color="secondary"
             icon="mdi-file-excel"
@@ -621,6 +631,67 @@ async function executeImport() {
   }
 
   reader.readAsArrayBuffer(file)
+}
+
+// ── Exportar Excel ──────────────────────────────────────────────────
+const exportando = ref(false)
+
+async function exportar() {
+  const f = {
+    ...filtros.value,
+    estado: filtros.value.estado?.value ?? filtros.value.estado,
+    responsable: filtros.value.responsable?.value ?? filtros.value.responsable
+  }
+  exportando.value = true
+  try {
+    const data = await store.exportarIncidencias(f)
+    const labels = { '22': 'Pendiente', '21': 'Atendido', '23': 'Refacturado', '24': 'Pedido Anulado', '25': 'Emisión NC' }
+
+    const rows = data.map((r, i) => ({
+      'N°': i + 1,
+      'N° INCIDENCIA': `INCD-${String(r.ID).padStart(5, '0')}`,
+      'MES': String(r.FECHAINCID).substring(4, 6) || '',
+      'AÑO': String(r.FECHAINCID).substring(0, 4) || '',
+      'FECHA INGRESO INCID SISTEMA': r.FECHACREA ? `${String(r.FECHACREA).substring(6,8)}/${String(r.FECHACREA).substring(4,6)}/${String(r.FECHACREA).substring(0,4)}` : '',
+      'CD CLIENTE': r.CODCLI,
+      'CLIENTE': r.CLINOM || '',
+      'AREA': r.CANAL || '',
+      'TIPO DE INCIDENCIA': r.DESCTIPO || '',
+      'SR': r.PHPVTA,
+      'PEDIDO': r.PHNUME,
+      'RESPONSABLE': r.USRENC || '',
+      'USUARIO': r.USUARIOCREA || '',
+      'CÓDIGO': r.CODPROD || '',
+      'PRODUCTO': r.ARTDES || '',
+      'MARCA': r.ARTMAR || '',
+      'ORIGEN': '',
+      'COMENTARIO': r.COMENTARIO || '',
+      'ESTADO ATC': labels[r.ESTADOINCD] || r.ESTADOINCD,
+      'RESPONSABLE ATC': r.USRENC || '',
+      'SEGUIMIENTO ATC': ''
+    }))
+
+    const wb = XLSX.utils.book_new()
+    const ws = XLSX.utils.json_to_sheet(rows)
+
+    const colWidths = [
+      { wch: 5 }, { wch: 15 }, { wch: 5 }, { wch: 5 }, { wch: 15 },
+      { wch: 12 }, { wch: 35 }, { wch: 12 }, { wch: 20 }, { wch: 6 },
+      { wch: 14 }, { wch: 14 }, { wch: 12 }, { wch: 15 }, { wch: 35 },
+      { wch: 25 }, { wch: 12 }, { wch: 40 }, { wch: 18 }, { wch: 18 },
+      { wch: 25 }
+    ]
+    ws['!cols'] = colWidths
+
+    XLSX.utils.book_append_sheet(wb, ws, 'Incidencias')
+    XLSX.writeFile(wb, `Incidencias_${new Date().toISOString().slice(0,10)}.xlsx`)
+    const incs = new Set(data.map(r => r.ID)).size
+    $q.notify({ type: 'positive', message: `${incs} incidencia(s) exportadas (${rows.length} líneas)` })
+  } catch (err) {
+    $q.notify({ type: 'negative', message: `Error al exportar: ${err.message}` })
+  } finally {
+    exportando.value = false
+  }
 }
 
 async function executeAsignar() {
