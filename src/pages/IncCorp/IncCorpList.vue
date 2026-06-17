@@ -110,7 +110,7 @@
         <!-- Dialog filtros avanzados -->
         <q-dialog v-model="showFiltros" persistent>
           <q-card style="min-width: 600px; max-width: 700px">
-            <q-card-section class="bg-primary text-white q-py-sm">
+            <q-card-section class="bg-primary text-white q-py-sm" style="cursor: move" @mousedown.prevent="onHeaderMouseDown">
               <div class="row items-center">
                 <q-icon name="mdi-filter" size="sm" class="q-mr-sm" />
                 <span class="text-weight-bold">Filtros Avanzados</span>
@@ -250,7 +250,7 @@
   <!-- Password dialog -->
   <q-dialog v-model="showPassword" persistent>
     <q-card style="min-width: 360px; border-radius: 14px">
-      <q-card-section class="bg-negative text-white q-py-sm" style="border-radius: 14px 14px 0 0">
+      <q-card-section class="bg-negative text-white q-py-sm" style="border-radius: 14px 14px 0 0; cursor: move" @mousedown.prevent="onHeaderMouseDown">
         <div class="row items-center">
           <q-icon name="mdi-shield-lock" size="sm" class="q-mr-sm" />
           <span class="text-weight-bold">Confirmar eliminación</span>
@@ -272,7 +272,7 @@
   <!-- Asignar responsable dialog -->
   <q-dialog v-model="showAsignar" persistent>
     <q-card style="min-width: 400px; border-radius: 14px">
-      <q-card-section class="bg-primary text-white q-py-sm" style="border-radius: 14px 14px 0 0">
+      <q-card-section class="bg-primary text-white q-py-sm" style="border-radius: 14px 14px 0 0; cursor: move" @mousedown.prevent="onHeaderMouseDown">
         <div class="row items-center">
           <q-icon name="mdi-account-edit" size="sm" class="q-mr-sm" />
           <span class="text-weight-bold">Asignar Responsable</span>
@@ -296,7 +296,7 @@
   <!-- Importar Excel dialog -->
   <q-dialog v-model="showImport" persistent>
     <q-card class="import-dialog">
-      <q-card-section class="bg-secondary text-white q-py-md">
+      <q-card-section class="bg-secondary text-white q-py-md" style="cursor: move" @mousedown.prevent="onHeaderMouseDown">
         <div class="row items-center">
           <div class="col-auto q-pr-sm">
             <div class="bg-white rounded-borders flex flex-center" style="width: 36px; height: 36px">
@@ -378,6 +378,7 @@ import { useIncidentStore } from 'stores/incident'
 import { useAuthStore } from 'stores/auth'
 import * as XLSX from 'xlsx'
 import ExcelJS from 'exceljs'
+import { useDraggable } from 'src/composables/useDraggable'
 
 const $q = useQuasar()
 const router = useRouter()
@@ -636,6 +637,7 @@ async function executeImport() {
 
 // ── Exportar Excel ──────────────────────────────────────────────────
 const exportando = ref(false)
+const { onHeaderMouseDown } = useDraggable()
 
 async function exportar() {
   const f = {

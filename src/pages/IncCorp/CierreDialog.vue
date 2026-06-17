@@ -1,7 +1,7 @@
 <template>
   <q-dialog v-model="visible" persistent>
     <q-card style="min-width: 520px; border-radius: 14px">
-      <q-card-section class="bg-primary text-white q-py-sm" style="border-radius: 14px 14px 0 0">
+      <q-card-section class="bg-primary text-white q-py-sm" style="border-radius: 14px 14px 0 0; cursor: move" @mousedown.prevent="onHeaderMouseDown">
         <div class="row items-center">
           <q-icon name="mdi-check-circle" size="sm" class="q-mr-sm" />
           <span class="text-weight-bold">Cerrar Incidencia</span>
@@ -47,6 +47,7 @@ import { ref, watch, onMounted } from 'vue'
 import { useIncidentStore } from 'stores/incident'
 import { useAuthStore } from 'stores/auth'
 import { date, useQuasar } from 'quasar'
+import { useDraggable } from 'src/composables/useDraggable'
 
 const $q = useQuasar()
 
@@ -56,6 +57,7 @@ const emit = defineEmits(['update:modelValue', 'saved'])
 const store = useIncidentStore()
 const auth = useAuthStore()
 const visible = ref(props.modelValue)
+const { onHeaderMouseDown } = useDraggable()
 
 const tipoInc = ref(null)
 const tipoCierre = ref(null)

@@ -282,7 +282,7 @@
 
     <q-dialog v-model="editarResponsable" persistent>
       <q-card style="min-width: 380px; border-radius: 14px">
-        <q-card-section class="bg-primary text-white q-py-sm" style="border-radius: 14px 14px 0 0">
+        <q-card-section class="bg-primary text-white q-py-sm" style="border-radius: 14px 14px 0 0; cursor: move" @mousedown.prevent="onHeaderMouseDown">
           <div class="row items-center">
             <q-icon name="mdi-account-edit" size="sm" class="q-mr-sm" />
             <span class="text-weight-bold">Cambiar Responsable</span>
@@ -311,12 +311,14 @@ import { useIncidentStore } from 'stores/incident'
 import { useAuthStore } from 'stores/auth'
 import { useQuasar } from 'quasar'
 import { fmtFecha, fmtMoney } from 'src/helpers/format'
+import { useDraggable } from 'src/composables/useDraggable'
 import CierreDialog from './CierreDialog.vue'
 import InfoDialog from './InfoDialog.vue'
 import HistorialDialog from './HistorialDialog.vue'
 
 const $q = useQuasar()
 const auth = useAuthStore()
+const { onHeaderMouseDown } = useDraggable()
 
 const route = useRoute()
 const store = useIncidentStore()

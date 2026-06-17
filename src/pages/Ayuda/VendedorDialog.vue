@@ -1,7 +1,7 @@
 <template>
   <q-dialog v-model="visible" persistent>
     <q-card style="min-width: 700px; max-width: 800px">
-      <q-card-section class="bg-primary text-white q-py-sm">
+      <q-card-section class="bg-primary text-white q-py-sm" style="cursor: move" @mousedown.prevent="onHeaderMouseDown">
         <div class="row items-center">
           <q-icon name="mdi-account-search" size="sm" class="q-mr-sm" />
           <span class="text-weight-bold">Buscar Vendedor</span>
@@ -38,10 +38,12 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { useAuthStore } from 'stores/auth'
+import { useDraggable } from 'src/composables/useDraggable'
 
 const props = defineProps({ modelValue: Boolean })
 const emit = defineEmits(['update:modelValue', 'select'])
 const auth = useAuthStore()
+const { onHeaderMouseDown } = useDraggable()
 const visible = ref(props.modelValue)
 
 watch(() => props.modelValue, (v) => { visible.value = v })

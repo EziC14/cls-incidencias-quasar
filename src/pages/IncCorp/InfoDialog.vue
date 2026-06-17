@@ -1,7 +1,7 @@
 <template>
   <q-dialog v-model="visible">
     <q-card style="min-width: 520px; border-radius: 14px">
-      <q-card-section class="bg-primary text-white q-py-sm" style="border-radius: 14px 14px 0 0">
+      <q-card-section class="bg-primary text-white q-py-sm" style="border-radius: 14px 14px 0 0; cursor: move" @mousedown.prevent="onHeaderMouseDown">
         <div class="row items-center">
           <q-icon name="mdi-information-outline" size="sm" class="q-mr-sm" />
           <span class="text-weight-bold">Información Adicional</span>
@@ -44,9 +44,11 @@
 
 <script setup>
 import { ref, watch } from 'vue'
+import { useDraggable } from 'src/composables/useDraggable'
 
 const props = defineProps({ modelValue: Boolean, incidencia: Object, detalles: Array })
 const emit = defineEmits(['update:modelValue'])
+const { onHeaderMouseDown } = useDraggable()
 const visible = ref(props.modelValue)
 
 watch(() => props.modelValue, (v) => { visible.value = v })

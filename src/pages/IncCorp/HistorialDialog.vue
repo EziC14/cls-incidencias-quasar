@@ -3,7 +3,7 @@
     <q-card class="chat-card">
 
       <!-- Header -->
-      <div class="chat-header">
+      <div class="chat-header" style="cursor: move" @mousedown.prevent="onHeaderMouseDown">
         <div class="header-left">
           <div class="header-icon">
             <q-icon name="mdi-chat-processing" size="18px" color="white" />
@@ -99,12 +99,14 @@ import { useQuasar } from 'quasar'
 import { useAuthStore } from 'src/stores/auth'
 import { useIncidentStore } from 'src/stores/incident'
 import { fmtFecha } from 'src/helpers/format'
+import { useDraggable } from 'src/composables/useDraggable'
 
 const props = defineProps({ modelValue: Boolean, incidencia: Object })
 const emit = defineEmits(['update:modelValue'])
 const $q = useQuasar()
 const store = useIncidentStore()
 const auth = useAuthStore()
+const { onHeaderMouseDown } = useDraggable()
 
 const visible = ref(props.modelValue)
 const scrollArea = ref(null)
