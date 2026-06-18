@@ -457,6 +457,8 @@ async function cargarPagina(pagina) {
       estado: filtros.value.estado?.value ?? filtros.value.estado,
       responsable: filtros.value.responsable?.value ?? filtros.value.responsable
     }
+    if (f.desde) f.desde = f.desde.replace(/-/g, '')
+    if (f.hasta) f.hasta = f.hasta.replace(/-/g, '')
     const [rows, count] = await Promise.all([
       store.listarIncidencias(f, pagina, POR_PAGINA),
       pagina === 1 ? store.contarIncidencias(f) : Promise.resolve(total.value)
@@ -645,6 +647,8 @@ async function exportar() {
     estado: filtros.value.estado?.value ?? filtros.value.estado,
     responsable: filtros.value.responsable?.value ?? filtros.value.responsable
   }
+  if (f.desde) f.desde = f.desde.replace(/-/g, '')
+  if (f.hasta) f.hasta = f.hasta.replace(/-/g, '')
   exportando.value = true
   try {
     const data = await store.exportarIncidencias(f)
