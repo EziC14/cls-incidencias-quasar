@@ -9,6 +9,7 @@
       </div>
       <q-space />
       <q-btn v-if="incidencia?.ESTADOINCD === '22'" label="Cerrar" color="primary" icon="mdi-check-circle" @click="openCierre" unelevated class="q-mr-sm" style="height: 36px; border-radius: 8px" no-caps />
+      <q-btn v-if="incidencia?.ESTADOINCD !== '22' && incidencia?.ESTADOINCD !== '99'" label="Ver Cierre" color="secondary" icon="mdi-check-circle" @click="openCierreInfo" unelevated class="q-mr-sm" style="height: 36px; border-radius: 8px" no-caps />
       <q-btn label="Más Info" color="grey-8" icon="mdi-information-outline" @click="openInfo" flat class="q-mr-sm" style="height: 36px; border-radius: 8px" no-caps />
       <q-btn label="Historial" color="secondary" icon="mdi-history" @click="openHistorial" flat style="height: 36px; border-radius: 8px" no-caps />
     </div>
@@ -131,6 +132,10 @@
                 </div>
               </div>
               <div class="col-6 col-sm-3">
+                <div class="text-caption text-grey-7 q-mb-xs">Monto Dev.</div>
+                <div class="text-body2 text-weight-medium">S/ {{ Number(incidencia.MONTDEV || 0).toLocaleString('es-PE', { minimumFractionDigits: 2 }) }}</div>
+              </div>
+              <div class="col-6 col-sm-3">
                 <div class="text-caption text-grey-7 q-mb-xs">Monto OC</div>
                 <div class="text-body2 text-weight-medium">S/ {{ fmtMoney(incidencia.PHNVVA || incidencia.PHEVVA) }}</div>
               </div>
@@ -175,42 +180,7 @@
           </q-card-section>
         </q-card>
 
-        <q-card flat bordered class="q-mb-md">
-          <q-card-section class="bg-primary text-white q-py-sm">
-            <div class="row items-center">
-              <q-icon name="mdi-phone" size="sm" class="q-mr-sm" />
-              <span class="text-weight-bold">Contacto / Devolución</span>
-            </div>
-          </q-card-section>
-          <q-card-section class="q-pt-sm q-pb-md">
-            <div class="row q-col-gutter-sm">
-              <div class="col-12 col-sm-6">
-                <div class="text-caption text-grey-7 q-mb-xs">Nombre Contacto</div>
-                <div class="text-body2 text-weight-medium">{{ incidencia.NOMCONTACTO || '—' }}</div>
-              </div>
-              <div class="col-6 col-sm-3">
-                <div class="text-caption text-grey-7 q-mb-xs">Teléfono</div>
-                <div class="text-body2 text-weight-medium">{{ incidencia.NUMTLFO || '—' }}</div>
-              </div>
-              <div class="col-6 col-sm-3">
-                <div class="text-caption text-grey-7 q-mb-xs">Monto Dev.</div>
-                <div class="text-body2 text-weight-medium">S/ {{ incidencia.MONTDEV || '0.00' }}</div>
-              </div>
-              <div class="col-12 col-sm-6">
-                <div class="text-caption text-grey-7 q-mb-xs">Email</div>
-                <div class="text-body2 text-weight-medium">{{ incidencia.EMAILCONT || '—' }}</div>
-              </div>
-              <div class="col-12 col-sm-6">
-                <div class="text-caption text-grey-7 q-mb-xs">Dirección</div>
-                <div class="text-body2 text-weight-medium">{{ incidencia.DIRECCONT || '—' }}</div>
-              </div>
-              <div class="col-12">
-                <div class="text-caption text-grey-7 q-mb-xs">Motivo</div>
-                <div class="text-body2 text-weight-medium">{{ incidencia.COMENTARIO || '—' }}</div>
-              </div>
-            </div>
-          </q-card-section>
-        </q-card>
+
       </div>
 
       <div class="col-12 col-md-5">
@@ -279,6 +249,7 @@
     <CierreDialog v-model="cierreDialog" :incidencia-id="id" @saved="onCierreSaved" />
     <InfoDialog v-model="infoDialog" :incidencia="incidencia" :detalles="detalles" />
     <HistorialDialog v-model="historialDialog" :incidencia="incidencia" />
+    <CierreInfoDialog v-model="cierreInfoDialog" :incidencia="incidencia" />
 
     <q-dialog v-model="editarResponsable" persistent>
       <q-card style="min-width: 380px; border-radius: 14px">
@@ -315,6 +286,7 @@ import { useDraggable } from 'src/composables/useDraggable'
 import CierreDialog from './CierreDialog.vue'
 import InfoDialog from './InfoDialog.vue'
 import HistorialDialog from './HistorialDialog.vue'
+import CierreInfoDialog from './CierreInfoDialog.vue'
 
 const $q = useQuasar()
 const auth = useAuthStore()
@@ -329,6 +301,7 @@ const loading = ref(true)
 const cierreDialog = ref(false)
 const infoDialog = ref(false)
 const historialDialog = ref(false)
+const cierreInfoDialog = ref(false)
 const editarResponsable = ref(false)
 const nuevoResponsable = ref('')
 
@@ -382,6 +355,10 @@ function openInfo() {
 
 function openHistorial() {
   historialDialog.value = true
+}
+
+function openCierreInfo() {
+  cierreInfoDialog.value = true
 }
 
 function onCierreSaved() {
