@@ -333,9 +333,11 @@ function openClienteDialog() {
   clienteDialog.value = true
 }
 
-function onClienteSelected(cliente) {
+async function onClienteSelected(cliente) {
   codCli.value = cliente.CLICVE
   nomCli.value = cliente.CLINOM
+  const resp = await store.buscarResponsable(cliente.CLICVE)
+  if (resp) usuarioResponsable.value = resp
 }
 
 async function registrarIncidencia() {

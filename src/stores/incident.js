@@ -261,6 +261,8 @@ export const useIncidentStore = defineStore('incident', {
         })()
         const monto = det.data.reduce((s, d) => s + (Number(d.PDCANT) || 0) * (Number(d.PDUNIT) || 0), 0)
 
+        const autoResp = await this.buscarResponsable(codcli)
+
         try {
           await this.registrarCabecera({
             canal, codvend, codcli,
@@ -270,7 +272,7 @@ export const useIncidentStore = defineStore('incident', {
             direccontact: r.direccion, emailcontact: r.email,
             comentario: r.motivo,
             tipincd: r.tipoIncidencia,
-            usuariocrea: usuarioReg, usrenc: '',
+            usuariocrea: usuarioReg, usrenc: autoResp || '',
             ejercicio: 0, periodo: 0, almacen: '0', vale: 0
           })
         } catch (e) {
@@ -314,6 +316,96 @@ export const useIncidentStore = defineStore('incident', {
       }
       return { ok, err, errores }
     },
+    // ── Asignaciones Cliente→Responsable ──────────────────────────────────
+    async listarAsignaciones() {
+      return await this._query(
+        `SELECT R.*, C.CLINOM
+         FROM CLS.TCLI_RESP R
+         LEFT JOIN SPEED400CS.TCLIE C ON C.CLICVE = R.CODCLI
+         ORDER BY R.CODCLI`
+      )
+    },
+    async buscarResponsable(codcli) {
+      if (!codcli) return null
+      const rows = await this._query(
+        "SELECT USRENC FROM CLS.TCLI_RESP WHERE CODCLI = ?",
+        [codcli]
+      )
+      return rows.length > 0 ? rows[0].USRENC : null
+    },
+    async guardarAsignacion(codcli, usrenc) {
+      const exist = await this._query("SELECT COUNT(*) AS C FROM CLS.TCLI_RESP WHERE CODCLI = ?", [codcli])
+      if (Number(exist[0].C) > 0) {
+        await this._query(
+          "UPDATE CLS.TCLI_RESP SET USRENC = ?, FECHAMOD = TO_CHAR(CURRENT DATE, 'YYYYMMDD') WHERE CODCLI = ?",
+          [usrenc, codcli]
+        )
+      } else {
+        await this._query(
+          "INSERT INTO CLS.TCLI_RESP (CODCLI, USRENC, FECHAMOD) VALUES (?, ?, TO_CHAR(CURRENT DATE, 'YYYYMMDD'))",
+          [codcli, usrenc]
+        )
+      }
+      return { ok: true }
+    },
+    async eliminarAsignacion(codcli) {
+      await this._query("DELETE FROM CLS.TCLI_RESP WHERE CODCLI = ?", [codcli])
+      return { ok: true }
+    },
+    async importarAsignaciones(rows, onProgress) {
+      let ok = 0, err = 0
+      const errores = []
+      for (let i = 0; i < rows.length; i++) {
+        const r = rows[i]
+        try {
+          if (!r.codcli || !r.usrenc) {
+            err++; errores.push(`Fila ${i+2}: CODCLI y USRENC requeridos`); continue
+          }
+          await this.guardarAsignacion(r.codcli, r.usrenc)
+          ok++
+        } catch (e) {
+          err++; errores.push(`Fila ${i+2}: ${e.message}`)
+        }
+        if (onProgress) onProgress(i + 1, rows.length)
+      }
+      return { ok, err, errores }
+    },
+    async generarAsignacionesDesdeHistorial(usuarioFiltro) {
+      let sql = `SELECT CODCLI, USRENC, COUNT(*) AS VECES
+                 FROM CLS.TINCIDENCIAH
+                 WHERE USRENC IS NOT NULL AND USRENC <> ''`
+      if (usuarioFiltro) sql += ` AND USRENC = ?`
+      sql += ` GROUP BY CODCLI, USRENC
+               HAVING COUNT(*) = (
+                 SELECT MAX(CNT) FROM (
+                   SELECT COUNT(*) AS CNT FROM CLS.TINCIDENCIAH
+                   WHERE USRENC IS NOT NULL AND USRENC <> ''
+                   GROUP BY CODCLI, USRENC
+                 ) T
+               )`
+      // Simplificado: por cada cliente, el responsable que mas lo atendio
+      const asignaciones = await this._query(
+        `SELECT CODCLI, USRENC
+         FROM (
+           SELECT CODCLI, USRENC, COUNT(*) AS CNT,
+                  ROW_NUMBER() OVER (PARTITION BY CODCLI ORDER BY COUNT(*) DESC) AS RN
+           FROM CLS.TINCIDENCIAH
+           WHERE USRENC IS NOT NULL AND USRENC <> ''
+           GROUP BY CODCLI, USRENC
+         ) T
+         WHERE RN = 1`
+      )
+      let insertadas = 0
+      for (const a of asignaciones) {
+        const exist = await this._query("SELECT COUNT(*) AS C FROM CLS.TCLI_RESP WHERE CODCLI = ?", [a.CODCLI])
+        if (Number(exist[0].C) === 0) {
+          await this.guardarAsignacion(a.CODCLI, a.USRENC)
+          insertadas++
+        }
+      }
+      return { total: asignaciones.length, insertadas }
+    },
+
     async agregarComentario(idIncd, comentario, usuario, fecha, hora) {
       await this._query(
         `INSERT INTO CLS.TINCIDHIST (ID_INCD, COMENTARIO, USUARIO, FECHA, HORA) VALUES (?, ?, ?, ?, ?)`,

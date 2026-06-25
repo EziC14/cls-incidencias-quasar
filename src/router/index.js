@@ -19,7 +19,12 @@ const routes = [
       { path: 'inc-corp/listar', name: 'IncCorpList', component: () => import('pages/IncCorp/IncCorpList.vue') },
       { path: 'inc-corp/detalle/:id', name: 'IncCorpDetail', component: () => import('pages/IncCorp/IncCorpDetail.vue') },
       { path: 'inc-corp/resuelto/:id', name: 'IncResuelto', component: () => import('pages/IncCorp/IncResuelto.vue') },
-      { path: 'inc-log/registrar', name: 'IncLogRegister', component: () => import('pages/IncLog/IncLogRegister.vue') }
+      { path: 'inc-log/registrar', name: 'IncLogRegister', component: () => import('pages/IncLog/IncLogRegister.vue') },
+      { path: 'config', redirect: '/config/asignaciones' },
+      { path: 'config/asignaciones', name: 'ConfigAsignaciones', component: () => import('pages/ConfigPage.vue') },
+      { path: 'config/general', name: 'ConfigGeneral', component: () => import('pages/ConfigPage.vue') },
+      { path: 'config/usuarios', name: 'ConfigUsuarios', component: () => import('pages/ConfigPage.vue') },
+      { path: 'config/notificaciones', name: 'ConfigNotificaciones', component: () => import('pages/ConfigPage.vue') }
     ]
   }
 ]

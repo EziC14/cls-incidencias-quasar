@@ -342,6 +342,10 @@ async function buscarPedido() {
 
       if (result.data.PHUSAP) {
         codVend.value = result.data.PHUSAP
+        // Auto-asignar responsable por cliente
+        const resp = await store.buscarResponsable(result.data.PHCLIE)
+        if (resp) usuarioResponsable.value = resp
+
         const vres = await store._query(
           `SELECT AGECVE, AGENOM, TBALF2 AS CANAL
            FROM SPEED400CS.TAGEN
