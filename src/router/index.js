@@ -22,6 +22,7 @@ const routes = [
       { path: 'inc-log/registrar', name: 'IncLogRegister', component: () => import('pages/IncLog/IncLogRegister.vue') },
       { path: 'config', redirect: '/config/asignaciones' },
       { path: 'config/asignaciones', name: 'ConfigAsignaciones', component: () => import('pages/ConfigPage.vue') },
+      { path: 'config/permisos', name: 'ConfigPermisos', component: () => import('pages/ConfigPage.vue') },
       { path: 'config/general', name: 'ConfigGeneral', component: () => import('pages/ConfigPage.vue') },
       { path: 'config/usuarios', name: 'ConfigUsuarios', component: () => import('pages/ConfigPage.vue') },
       { path: 'config/notificaciones', name: 'ConfigNotificaciones', component: () => import('pages/ConfigPage.vue') }
@@ -37,20 +38,25 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const stored = localStorage.getItem('auth')
   if (stored) {
-    const { usuario, clave } = JSON.parse(stored)
+    const { usuario, clave, isAdmin } = JSON.parse(stored)
     const auth = useAuthStore()
     if (!auth.usuario) {
       auth.usuario = usuario
       auth.clave = clave
       auth.loggedIn = true
+      auth.isAdmin = !!isAdmin
     }
   }
   if (to.meta.requiresAuth && !stored) {
     next('/login')
   } else {
-    next()
+    const auth = useAuthStore()
+    if (to.path.startsWith('/config') && stored && !auth.isAdmin) {
+      next('/inc-corp/listar')
+    } else {
+      next()
+    }
   }
 })
 
 export default router
-

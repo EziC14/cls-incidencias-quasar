@@ -22,7 +22,6 @@
             <q-space />
             <q-btn label="Agregar" color="accent" unelevated icon="mdi-plus" @click="openAdd" no-caps />
             <q-btn label="Importar" color="secondary" unelevated icon="mdi-file-excel" @click="openImport" no-caps />
-            <q-btn label="Generar" color="accent" outline icon="mdi-auto-fix" @click="generarDesdeHistorial" :loading="generando" no-caps />
           </div>
         </div>
       </div>
@@ -64,6 +63,93 @@
           <div class="q-mt-md text-grey-5 text-caption">{{ filtered.length }} registro{{ filtered.length !== 1 ? 's' : '' }}</div>
         </template>
       </div>
+    </template>
+
+    <template v-else-if="section === 'permisos'">
+      <div class="q-pa-lg" style="max-width: 700px; margin: 0 auto">
+        <div class="q-mb-lg">
+          <div class="text-h5 text-weight-bold">Permisos</div>
+          <div class="text-grey-7 q-mt-xs" style="font-size: 14px">Control de acceso al panel de configuración</div>
+        </div>
+
+        <div class="row items-center q-mb-md q-gutter-sm">
+          <q-input v-model="permisoFilter" outlined dense debounce="300" placeholder="Buscar admin..." style="min-width: 240px">
+            <template v-slot:prepend><q-icon name="mdi-magnify" color="grey-4" /></template>
+          </q-input>
+          <q-btn label="Agregar admin" color="accent" unelevated icon="mdi-plus" @click="showAddPermiso = true" no-caps />
+        </div>
+
+        <div v-if="permisoLoading" class="flex flex-center q-py-xl">
+          <q-spinner color="primary" size="40px" />
+        </div>
+
+        <template v-else>
+          <div v-if="adminsFiltrados.length === 0" class="flex flex-center q-py-xl text-grey-4">
+            <div class="text-center">
+              <q-icon name="mdi-shield-account" size="56px" />
+              <div class="q-mt-sm text-grey-6 text-weight-medium">Sin resultados</div>
+            </div>
+          </div>
+
+          <div v-else class="list-container">
+            <div v-for="row in adminsFiltrados" :key="row.USUARIO" class="list-row">
+              <div class="list-left">
+                <div class="list-avatar" style="background: #FB8159; color: #fff"><q-icon name="mdi-shield-account" size="20px" /></div>
+                <div class="list-info">
+                  <div class="list-code">{{ row.USUARIO }}</div>
+                  <div class="list-name">{{ row.FECHAMOD ? `Agregado: ${row.FECHAMOD}` : 'Acceso completo a configuración' }}</div>
+                </div>
+              </div>
+              <div class="list-right">
+                <q-btn flat dense round icon="mdi-delete-outline" color="negative" size="sm" @click="eliminarPermiso(row)" />
+              </div>
+            </div>
+          </div>
+
+          <div class="q-mt-md text-caption text-grey-4">
+            Los usuarios admin tienen acceso a todas las secciones de configuración.
+            Los demás usuarios solo ven incidencias y registros.
+          </div>
+        </template>
+      </div>
+
+      <q-dialog v-model="showAddPermiso">
+        <q-card style="min-width: 400px; border-radius: 14px">
+          <q-card-section class="bg-accent text-white q-py-md">
+            <div class="row items-center">
+              <q-icon name="mdi-plus-circle" size="22px" class="q-mr-sm" />
+              <div class="col text-weight-bold text-body1">Agregar admin</div>
+              <q-btn flat dense icon="mdi-close" v-close-popup />
+            </div>
+          </q-card-section>
+          <q-card-section class="q-pa-lg q-gutter-md">
+            <div>
+              <div class="text-caption text-grey-7 q-mb-xs">Nombre de usuario</div>
+              <q-select
+                v-model="nuevoAdmin"
+                :options="usuariosDisponibles"
+                outlined
+                dense
+                use-input
+                fill-input
+                hide-bottom
+                placeholder="Buscar o escribir usuario..."
+              >
+                <template v-slot:prepend><q-icon name="mdi-account" color="grey-5" /></template>
+              </q-select>
+            </div>
+            <div class="bg-amber-1 q-pa-md" style="border-radius: 8px; border-left: 3px solid #FB8159;">
+              <div class="text-caption text-grey-7">El usuario tendrá acceso completo a Configuración (Asignaciones, Permisos y futuras secciones).</div>
+            </div>
+          </q-card-section>
+          <q-card-section class="bg-grey-1 q-py-md q-px-lg">
+            <div class="row justify-end q-gutter-sm">
+              <q-btn label="Cancelar" flat v-close-popup no-caps class="q-px-md" />
+              <q-btn label="Guardar" color="accent" unelevated :disabled="!nuevoAdmin" :loading="permisoAdding" @click="agregarPermiso" no-caps icon="mdi-check" class="q-px-lg" />
+            </div>
+          </q-card-section>
+        </q-card>
+      </q-dialog>
     </template>
 
     <template v-else>
@@ -230,7 +316,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { useIncidentStore } from 'stores/incident'
@@ -283,8 +369,16 @@ function seleccionarUsuario(user) {
 
 onMounted(async () => {
   await store.loadUsuarios()
-  await cargar()
-  loading.value = false
+  if (section.value === 'permisos') {
+    await cargarPermisos()
+  } else {
+    await cargar()
+    loading.value = false
+  }
+})
+
+watch(section, async (val) => {
+  if (val === 'permisos') await cargarPermisos()
 })
 
 async function cargar() { asignaciones.value = await store.listarAsignaciones() }
@@ -300,6 +394,59 @@ async function eliminarFila(row) {
       $q.notify({ type: 'positive', message: 'Eliminado', timeout: 1500 })
     })
 }
+// ---- Permisos ----
+const permisoFilter = ref('')
+const permisoLoading = ref(true)
+const admins = ref([])
+const usuariosDisponibles = ref([])
+const showAddPermiso = ref(false)
+const nuevoAdmin = ref(null)
+const permisoAdding = ref(false)
+
+const adminsFiltrados = computed(() => {
+  if (!permisoFilter.value) return admins.value
+  const q = permisoFilter.value.toLowerCase()
+  return admins.value.filter(a => a.USUARIO.toLowerCase().includes(q))
+})
+
+async function cargarPermisos() {
+  permisoLoading.value = true
+  try {
+    const [todos, adminRows] = await Promise.all([
+      store._query("SELECT DISTINCT USUARIOCREA FROM CLS.TINCIDENCIAH WHERE USUARIOCREA IS NOT NULL AND USUARIOCREA <> ''"),
+      store._query("SELECT * FROM CLS.TADMIN ORDER BY USUARIO")
+    ])
+    usuariosDisponibles.value = todos.map(r => r.USUARIOCREA).sort()
+    admins.value = adminRows
+  } catch (err) { $q.notify({ type: 'negative', message: err.message })
+  } finally { permisoLoading.value = false }
+}
+
+async function agregarPermiso() {
+  const u = nuevoAdmin.value
+  if (!u) return
+  permisoAdding.value = true
+  try {
+    await store._query("INSERT INTO CLS.TADMIN (USUARIO, FECHAMOD) VALUES (?, '')", [u])
+    admins.value.push({ USUARIO: u, FECHAMOD: '' })
+    $q.notify({ type: 'positive', message: `${u} ahora es admin`, timeout: 2000 })
+    showAddPermiso.value = false
+    nuevoAdmin.value = null
+  } catch (err) { $q.notify({ type: 'negative', message: err.message })
+  } finally { permisoAdding.value = false }
+}
+
+async function eliminarPermiso(row) {
+  $q.dialog({ title: 'Eliminar', message: `¿Quitar admin a ${row.USUARIO}?`, cancel: true, persistent: true })
+    .onOk(async () => {
+      try {
+        await store._query("DELETE FROM CLS.TADMIN WHERE USUARIO = ?", [row.USUARIO])
+        admins.value = admins.value.filter(a => a.USUARIO !== row.USUARIO)
+        $q.notify({ type: 'positive', message: 'Eliminado', timeout: 1500 })
+      } catch (err) { $q.notify({ type: 'negative', message: err.message }) }
+    })
+}
+
 async function generarDesdeHistorial() {
   generando.value = true
   try {

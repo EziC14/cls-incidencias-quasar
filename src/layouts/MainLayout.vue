@@ -98,7 +98,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from 'stores/auth'
 
@@ -109,28 +109,37 @@ const auth = useAuthStore()
 const mini = ref(true)
 const expandedSections = ref({})
 
-const navItems = [
-  { icon: 'mdi-format-list-bulleted', label: 'Ver Incidencias', to: '/inc-corp/listar' },
-  { icon: 'mdi-plus-circle-outline', label: 'Registrar ATC', to: '/inc-corp/registrar' },
-  { icon: 'mdi-truck-outline', label: 'Registrar LGST', to: '/inc-log/registrar' },
-  {
-    icon: 'mdi-cog',
-    label: 'Configuración',
-    to: '/config/asignaciones',
-    children: [
-      { icon: 'mdi-account-switch', label: 'Asignaciones', to: '/config/asignaciones' },
-      { icon: 'mdi-cog-outline', label: 'General', to: '/config/general' },
-      { icon: 'mdi-account-group', label: 'Usuarios', to: '/config/usuarios' },
-      { icon: 'mdi-bell-outline', label: 'Notificaciones', to: '/config/notificaciones' },
-    ]
-  },
-]
+const navItems = computed(() => {
+  const items = [
+    { icon: 'mdi-format-list-bulleted', label: 'Ver Incidencias', to: '/inc-corp/listar' },
+    { icon: 'mdi-plus-circle-outline', label: 'Registrar ATC', to: '/inc-corp/registrar' },
+    { icon: 'mdi-truck-outline', label: 'Registrar LGST', to: '/inc-log/registrar' },
+  ]
+  if (auth.isAdmin) {
+    items.push({
+      icon: 'mdi-cog',
+      label: 'Configuración',
+      to: '/config/asignaciones',
+      children: [
+        { icon: 'mdi-account-switch', label: 'Asignaciones', to: '/config/asignaciones' },
+        { icon: 'mdi-shield-account', label: 'Permisos', to: '/config/permisos' },
+      ]
+    })
+  }
+  return items
+})
 
 const configExpanded = computed(() => expandedSections.value['config'])
 
 function isActive(path) {
   return route.path.startsWith(path)
 }
+
+onMounted(() => {
+  if (!auth.isAdmin && route.path.startsWith('/config')) {
+    router.push('/inc-corp/listar')
+  }
+})
 
 function handleNavClick(item) {
   if (item.children && !mini.value) {
