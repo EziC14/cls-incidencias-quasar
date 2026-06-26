@@ -408,7 +408,17 @@ const responsableOptions = computed(() => [
   ...store.usuarios.map(u => ({ label: u, value: u }))
 ])
 
-const filtros = ref({
+const STORAGE_KEY = 'inc_filtros'
+
+function filtrosIniciales() {
+  const saved = localStorage.getItem(STORAGE_KEY)
+  if (saved) {
+    try { return JSON.parse(saved) } catch {}
+  }
+  return null
+}
+
+const filtros = ref(filtrosIniciales() || {
   nroIncd: '', codVend: '', codCli: '',
   tipoInc: null, estado: null, usuario: null, responsable: null,
   pedidoSerie: '', pedidoNro: '', guia: '', oc: '', factura: '',
@@ -443,8 +453,9 @@ function getEstadoLabel(estado) {
 
 onMounted(async () => {
   await Promise.all([store.loadTipos(), store.loadUsuarios()])
-  // Carga inicial: solo pendientes del mes
-  filtros.value.estado = { label: 'Pendiente', value: '22' }
+  if (!localStorage.getItem(STORAGE_KEY)) {
+    filtros.value.estado = { label: 'Pendiente', value: '22' }
+  }
   await cargarPagina(1)
   pageLoading.value = false
 })
@@ -452,6 +463,7 @@ onMounted(async () => {
 async function cargarPagina(pagina) {
   buscando.value = true
   try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(filtros.value))
     const f = {
       ...filtros.value,
       estado: filtros.value.estado?.value ?? filtros.value.estado,
@@ -487,6 +499,7 @@ function aplicarFiltros() {
 }
 
 function limpiarFiltros() {
+  localStorage.removeItem(STORAGE_KEY)
   filtros.value = { nroIncd: '', codVend: '', codCli: '', tipoInc: null, estado: null, usuario: null, responsable: null, pedidoSerie: '', pedidoNro: '', guia: '', oc: '', factura: '', desde: '', hasta: '' }
   showFiltros.value = false
   buscar()
