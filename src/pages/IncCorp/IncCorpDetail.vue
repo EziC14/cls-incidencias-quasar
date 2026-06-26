@@ -8,8 +8,9 @@
         <div class="text-caption text-grey-7">Detalle de Incidencia Corporativa</div>
       </div>
       <q-space />
-      <q-btn v-if="incidencia?.ESTADOINCD === '22'" label="Cerrar" color="primary" icon="mdi-check-circle" @click="openCierre" unelevated class="q-mr-sm" style="height: 36px; border-radius: 8px" no-caps />
-      <q-btn v-if="incidencia?.ESTADOINCD !== '22' && incidencia?.ESTADOINCD !== '99'" label="Ver Cierre" color="secondary" icon="mdi-check-circle" @click="openCierreInfo" unelevated class="q-mr-sm" style="height: 36px; border-radius: 8px" no-caps />
+      <q-btn v-if="incidencia?.ESTADOINCD === '22'" label="Iniciar" color="accent" icon="mdi-play-circle" @click="iniciarAtencion" unelevated class="q-mr-sm" style="height: 36px; border-radius: 8px" no-caps />
+      <q-btn v-if="incidencia?.ESTADOINCD === '22' || incidencia?.ESTADOINCD === '26'" label="Cerrar" color="primary" icon="mdi-check-circle" @click="openCierre" unelevated class="q-mr-sm" style="height: 36px; border-radius: 8px" no-caps />
+      <q-btn v-if="incidencia?.ESTADOINCD !== '22' && incidencia?.ESTADOINCD !== '26' && incidencia?.ESTADOINCD !== '99'" label="Ver Cierre" color="secondary" icon="mdi-check-circle" @click="openCierreInfo" unelevated class="q-mr-sm" style="height: 36px; border-radius: 8px" no-caps />
       <q-btn label="Más Info" color="grey-8" icon="mdi-information-outline" @click="openInfo" flat class="q-mr-sm" style="height: 36px; border-radius: 8px" no-caps />
       <q-btn label="Historial" color="secondary" icon="mdi-history" @click="openHistorial" flat style="height: 36px; border-radius: 8px" no-caps />
     </div>
@@ -76,7 +77,7 @@
                 <div class="text-caption text-grey-7 q-mb-xs">Responsable</div>
                 <div class="text-body2 text-weight-medium row items-center">
                   <span>{{ incidencia.USRENC || '—' }}</span>
-                  <q-btn flat dense round icon="mdi-pencil" size="xs" color="grey-6" class="q-ml-xs" @click="editarResponsable = true" v-if="incidencia.ESTADOINCD === '22'" />
+                  <q-btn flat dense round icon="mdi-pencil" size="xs" color="grey-6" class="q-ml-xs" @click="editarResponsable = true" v-if="incidencia.ESTADOINCD === '22' || incidencia.ESTADOINCD === '26'" />
                 </div>
               </div>
             </div>
@@ -313,6 +314,7 @@ const fmtFactura = computed(() => {
 
 const estadoMap = {
   '22': { label: 'Pendiente', color: 'orange' },
+  '26': { label: 'En Proceso', color: 'teal' },
   '21': { label: 'Atendido', color: 'green' },
   '23': { label: 'Refacturado', color: 'blue' },
   '24': { label: 'Pedido Anulado', color: 'red' },
@@ -364,6 +366,16 @@ function openCierreInfo() {
 function onCierreSaved() {
   cierreDialog.value = false
   $q.notify({ type: 'positive', message: 'Incidencia cerrada correctamente' })
+}
+
+async function iniciarAtencion() {
+  try {
+    await store.iniciarAtencion(id, auth.usuario)
+    incidencia.value.ESTADOINCD = '26'
+    $q.notify({ type: 'positive', message: 'Atención iniciada', timeout: 2000 })
+  } catch (err) {
+    $q.notify({ type: 'negative', message: 'Error al iniciar atención' })
+  }
 }
 
 async function guardarResponsable() {

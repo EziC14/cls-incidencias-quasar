@@ -426,12 +426,13 @@ const filtros = ref(filtrosIniciales() || {
 })
 
 const estados = [
-  { label: 'Pendiente',      value: '22' },
-  { label: 'Atendido',       value: '21' },
-  { label: 'Refacturado',    value: '23' },
+  { label: 'Pendiente',   value: '22' },
+  { label: 'En Proceso',  value: '26' },
+  { label: 'Atendido',    value: '21' },
+  { label: 'Refacturado', value: '23' },
   { label: 'Pedido Anulado', value: '24' },
-  { label: 'Emisión NC',     value: '25' },
-  { label: 'Anulado',        value: '99' },
+  { label: 'Emisión NC',  value: '25' },
+  { label: 'Anulado',     value: '99' },
 ]
 
 const tieneFiltros = computed(() =>
@@ -443,11 +444,11 @@ const tieneFiltros = computed(() =>
 )
 
 function getEstadoColor(estado) {
-  const colors = { '22': 'orange', '21': 'green', '23': 'blue', '24': 'red', '25': 'purple' }
+  const colors = { '22': 'orange', '26': 'teal', '21': 'green', '23': 'blue', '24': 'red', '25': 'purple' }
   return colors[estado] || 'grey'
 }
 function getEstadoLabel(estado) {
-  const labels = { '22': 'Pendiente', '21': 'Atendido', '23': 'Refacturado', '24': 'Pedido Anulado', '25': 'Emisión NC' }
+  const labels = { '22': 'Pendiente', '26': 'En Proceso', '21': 'Atendido', '23': 'Refacturado', '24': 'Pedido Anulado', '25': 'Emisión NC' }
   return labels[estado] || estado
 }
 
@@ -516,9 +517,9 @@ function toggleSelection(id) {
 }
 
 function asignarSelected() {
-  const noPendientes = incidencias.value.filter(i => selected.value.includes(i.ID) && i.ESTADOINCD !== '22')
+  const noPendientes = incidencias.value.filter(i => selected.value.includes(i.ID) && i.ESTADOINCD !== '22' && i.ESTADOINCD !== '26')
   if (noPendientes.length > 0) {
-    $q.notify({ type: 'warning', message: 'Solo se puede asignar responsable a incidencias Pendientes' })
+    $q.notify({ type: 'warning', message: 'Solo se puede asignar responsable a incidencias Pendiente o En Proceso' })
     return
   }
   showAsignar.value = true
@@ -665,7 +666,7 @@ async function exportar() {
   exportando.value = true
   try {
     const data = await store.exportarIncidencias(f)
-    const labels = { '22': 'Pendiente', '21': 'Atendido', '23': 'Refacturado', '24': 'Pedido Anulado', '25': 'Emisión NC' }
+    const labels = { '22': 'Pendiente', '26': 'En Proceso', '21': 'Atendido', '23': 'Refacturado', '24': 'Pedido Anulado', '25': 'Emisión NC' }
     const meses = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SETIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE']
 
     const columns = [

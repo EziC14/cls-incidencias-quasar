@@ -200,6 +200,13 @@ export const useIncidentStore = defineStore('incident', {
       )
       return rows[0]?.ID || 0
     },
+    async iniciarAtencion(id, usuario) {
+      await this._query(
+        "UPDATE CLS.TINCIDENCIAH SET ESTADOINCD = '26', USUARIOMOD = ?, FECHAMOD = TO_CHAR(CURRENT DATE, 'YYYYMMDD') WHERE ID = ? AND ESTADOINCD = '22'",
+        [usuario, id]
+      )
+      return { ok: true }
+    },
     async cerrarIncidencia(body) {
       const t = (v, len) => (v == null ? '' : String(v)).slice(0, len)
       await this._query(

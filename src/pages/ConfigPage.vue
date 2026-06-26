@@ -127,13 +127,16 @@
               <div class="text-caption text-grey-7 q-mb-xs">Nombre de usuario</div>
               <q-select
                 v-model="nuevoAdmin"
-                :options="usuariosDisponibles"
+                :options="adminFilteredOptions"
                 outlined
                 dense
                 use-input
                 fill-input
+                hide-selected
+                input-debounce="0"
                 hide-bottom
                 placeholder="Buscar o escribir usuario..."
+                @input-value="(v) => adminSearch = v"
               >
                 <template v-slot:prepend><q-icon name="mdi-account" color="grey-5" /></template>
               </q-select>
@@ -402,6 +405,13 @@ const usuariosDisponibles = ref([])
 const showAddPermiso = ref(false)
 const nuevoAdmin = ref(null)
 const permisoAdding = ref(false)
+const adminSearch = ref('')
+
+const adminFilteredOptions = computed(() => {
+  if (!adminSearch.value) return usuariosDisponibles.value
+  const needle = adminSearch.value.toLowerCase()
+  return usuariosDisponibles.value.filter(v => v.toLowerCase().includes(needle))
+})
 
 const adminsFiltrados = computed(() => {
   if (!permisoFilter.value) return admins.value
