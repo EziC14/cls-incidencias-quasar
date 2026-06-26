@@ -1,35 +1,39 @@
 <template>
   <div style="position: relative; min-height: calc(100vh - 70px)">
     <template v-if="section === 'asignaciones'">
-      <div class="q-pa-lg" style="max-width: 1000px; margin: 0 auto">
-        <div class="q-mb-lg">
-          <div class="text-h5 text-weight-bold">Asignaciones</div>
-          <div class="text-grey-7 q-mt-xs" style="font-size: 14px">Mapeo de clientes a responsable automático</div>
-        </div>
+      <div class="sticky-header">
+        <div class="q-pa-lg" style="max-width: 1000px; margin: 0 auto">
+          <div class="q-mb-sm">
+            <div class="text-h5 text-weight-bold">Asignaciones</div>
+            <div class="text-grey-7 q-mt-xs" style="font-size: 14px">Mapeo de clientes a responsable automático</div>
+          </div>
 
-        <div class="row items-center q-mb-lg q-gutter-sm">
-          <q-input
-            v-model="filter"
-            outlined
-            dense
-            debounce="300"
-            placeholder="Buscar cliente por código o nombre..."
-            style="min-width: 320px"
-          >
-            <template v-slot:prepend><q-icon name="mdi-magnify" color="grey-4" /></template>
-          </q-input>
-          <q-space />
-          <q-btn label="Agregar" color="primary" icon="mdi-plus" unelevated @click="openAdd" no-caps />
-          <q-btn label="Importar" color="secondary" icon="mdi-file-excel" unelevated @click="openImport" no-caps />
-          <q-btn label="Generar" color="accent" outline icon="mdi-auto-fix" @click="generarDesdeHistorial" :loading="generando" no-caps />
-          <q-btn flat icon="mdi-refresh" @click="cargar" />
+          <div class="row items-center q-gutter-sm">
+            <q-input
+              v-model="filter"
+              outlined
+              dense
+              debounce="300"
+              placeholder="Buscar cliente..."
+              style="min-width: 280px"
+            >
+              <template v-slot:prepend><q-icon name="mdi-magnify" color="grey-4" /></template>
+            </q-input>
+            <q-space />
+            <q-btn label="Agregar" color="accent" unelevated icon="mdi-plus" @click="openAdd" no-caps />
+            <q-btn label="Importar" color="secondary" unelevated icon="mdi-file-excel" @click="openImport" no-caps />
+            <q-btn label="Generar" color="accent" outline icon="mdi-auto-fix" @click="generarDesdeHistorial" :loading="generando" no-caps />
+          </div>
         </div>
+      </div>
+
+      <div class="q-pa-lg" style="max-width: 1000px; margin: 0 auto">
 
         <div v-if="loading" class="flex flex-center q-py-xl">
           <q-spinner color="primary" size="40px" />
         </div>
 
-        <div v-else>
+        <template v-else>
           <div v-if="filtered.length === 0" class="flex flex-center q-py-xl text-grey-4">
             <div class="text-center">
               <q-icon name="mdi-account-switch" size="56px" />
@@ -37,33 +41,28 @@
             </div>
           </div>
 
-          <div class="list-container" v-if="filtered.length > 0">
-            <div
-              v-for="row in filtered"
-              :key="row.CODCLI"
-              class="list-row"
-            >
-              <div class="list-row-inner">
-                <div class="list-client-code">{{ row.CODCLI }}</div>
-                <div class="list-client-name">{{ row.CLINOM || '—' }}</div>
-                <div class="list-actions">
-                  <q-select
-                    v-model="row.USRENC"
-                    :options="store.usuarios"
-                    outlined
-                    dense
-                    placeholder="Responsable"
-                    style="min-width: 150px"
-                    @update:model-value="guardarFila(row)"
-                  />
-                  <q-btn flat dense round icon="mdi-delete-outline" color="negative" size="sm" @click="eliminarFila(row)" />
+          <div v-else class="list-container">
+            <div v-for="row in filtered" :key="row.CODCLI" class="list-row" @click="abrirSelector(row)">
+              <div class="list-left">
+                <div class="list-avatar"><q-icon name="mdi-domain" size="20px" /></div>
+                <div class="list-info">
+                  <div class="list-code">{{ row.CODCLI }}</div>
+                  <div class="list-name">{{ row.CLINOM || '—' }}</div>
                 </div>
+              </div>
+
+              <div class="list-right">
+                <div class="list-responsable">
+                  <q-icon name="mdi-account-tie" size="16px" color="grey-4" class="q-mr-xs" />
+                  <span :class="{ 'text-grey-4': !row.USRENC }">{{ row.USRENC || 'Asignar responsable' }}</span>
+                </div>
+                <q-btn flat dense round icon="mdi-delete-outline" color="negative" size="sm" @click.stop="eliminarFila(row)" class="q-ml-sm" />
               </div>
             </div>
           </div>
 
           <div class="q-mt-md text-grey-5 text-caption">{{ filtered.length }} registro{{ filtered.length !== 1 ? 's' : '' }}</div>
-        </div>
+        </template>
       </div>
     </template>
 
@@ -74,6 +73,114 @@
         <div class="text-caption q-mt-xs">Esta sección está en desarrollo</div>
       </div>
     </template>
+
+    <q-dialog v-model="showSelector" persistent>
+      <q-card style="min-width: 380px; border-radius: 14px; overflow: hidden">
+        <q-card-section class="bg-primary text-white q-py-md">
+          <div class="row items-center">
+            <q-icon name="mdi-account-tie" size="22px" class="q-mr-sm" />
+            <div class="col text-weight-bold text-body1">Seleccionar responsable</div>
+            <q-btn flat dense icon="mdi-close" v-close-popup />
+          </div>
+        </q-card-section>
+        <q-card-section class="q-pa-lg">
+          <div class="text-weight-medium text-grey-8 q-mb-sm" style="font-size: 14px">
+            {{ selectorTarget?.CODCLI }} — {{ selectorTarget?.CLINOM }}
+          </div>
+          <q-input
+            v-model="selectorSearch"
+            outlined
+            dense
+            placeholder="Buscar responsable..."
+            autofocus
+            clearable
+            class="q-mb-md"
+          >
+            <template v-slot:prepend><q-icon name="mdi-magnify" color="grey-4" /></template>
+          </q-input>
+          <div style="max-height: 300px; overflow-y: auto">
+            <div
+              v-for="user in filteredUsuarios"
+              :key="user"
+              class="selector-item"
+              :class="{ selected: selectorTarget && selectorTarget.USRENC === user }"
+              @click="seleccionarUsuario(user)"
+            >
+              <div class="selector-avatar">{{ user.charAt(0).toUpperCase() }}</div>
+              <div>
+                <div class="selector-name">{{ user }}</div>
+                <div class="selector-sub">Responsable</div>
+              </div>
+              <q-icon v-if="selectorTarget && selectorTarget.USRENC === user" name="mdi-check-circle" color="primary" size="20px" class="q-ml-auto" />
+            </div>
+            <div v-if="filteredUsuarios.length === 0" class="text-center q-py-md text-grey-5 text-caption">Sin resultados</div>
+          </div>
+        </q-card-section>
+        <q-card-section class="bg-grey-1 q-py-sm q-px-lg">
+          <div class="row justify-end">
+            <q-btn label="Cancelar" flat v-close-popup no-caps class="q-px-md" />
+          </div>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
+
+    <q-dialog v-model="showAdd" persistent>
+      <q-card style="min-width: 400px; border-radius: 14px; overflow: hidden">
+        <q-card-section class="bg-primary text-white q-py-md">
+          <div class="row items-center">
+            <q-icon name="mdi-plus-circle" size="22px" class="q-mr-sm" />
+            <div class="col text-weight-bold text-body1">Nueva asignación</div>
+            <q-btn flat dense icon="mdi-close" v-close-popup @click="resetAdd" />
+          </div>
+        </q-card-section>
+
+        <q-card-section class="q-pa-lg q-gutter-md">
+          <div>
+            <div class="text-caption text-grey-7 q-mb-xs">Cliente</div>
+            <div class="row items-center no-wrap q-gutter-sm">
+              <div class="col">
+                <q-input
+                  v-model="addCodcli"
+                  outlined
+                  dense
+                  placeholder="Código o busque..."
+                  hide-bottom
+                  readonly
+                  @click="openClienteBuscar"
+                >
+                  <template v-slot:prepend><q-icon name="mdi-account" color="grey-5" /></template>
+                </q-input>
+              </div>
+              <q-btn icon="mdi-magnify" color="primary" unelevated dense @click="openClienteBuscar" />
+            </div>
+          </div>
+          <div>
+            <div class="text-caption text-grey-7 q-mb-xs">Responsable</div>
+            <q-select
+              v-model="addUsrenc"
+              :options="store.usuarios"
+              outlined
+              dense
+              use-input
+              fill-input
+              hide-bottom
+              placeholder="Buscar y seleccionar..."
+            >
+              <template v-slot:prepend><q-icon name="mdi-account-tie" color="grey-5" /></template>
+            </q-select>
+          </div>
+        </q-card-section>
+
+        <q-card-section class="bg-grey-1 q-py-md q-px-lg">
+          <div class="row justify-end q-gutter-sm">
+            <q-btn label="Cancelar" flat v-close-popup @click="resetAdd" no-caps class="q-px-md" />
+            <q-btn label="Guardar" color="primary" unelevated :disabled="!addCodcli || !addUsrenc" :loading="adding" @click="saveAdd" no-caps class="q-px-lg" icon="mdi-check" />
+          </div>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
+
+    <ClienteDialog v-model="clienteDialog" @select="onClienteSelected" />
 
     <q-dialog v-model="showImport" persistent>
       <q-card style="min-width: 480px; border-radius: 14px; overflow: hidden">
@@ -119,60 +226,6 @@
         </q-card-section>
       </q-card>
     </q-dialog>
-
-    <q-dialog v-model="showAdd" persistent>
-      <q-card style="min-width: 400px; border-radius: 14px; overflow: hidden">
-        <q-card-section class="bg-primary text-white q-py-md">
-          <div class="row items-center">
-            <q-icon name="mdi-plus-circle" size="22px" class="q-mr-sm" />
-            <div class="col text-weight-bold text-body1">Nueva asignación</div>
-            <q-btn flat dense icon="mdi-close" v-close-popup @click="resetAdd" />
-          </div>
-        </q-card-section>
-
-        <q-card-section class="q-pa-lg q-gutter-md">
-          <div>
-            <div class="text-caption text-grey-7 q-mb-xs">Cliente</div>
-            <div class="row items-center no-wrap q-gutter-sm">
-              <div class="col">
-                <q-input
-                  v-model="addCodcli"
-                  outlined
-                  dense
-                  placeholder="Código o busque..."
-                  hide-bottom
-                  readonly
-                  @click="openClienteBuscar"
-                >
-                  <template v-slot:prepend><q-icon name="mdi-account" color="grey-5" /></template>
-                </q-input>
-              </div>
-              <q-btn icon="mdi-magnify" color="primary" unelevated dense @click="openClienteBuscar" />
-            </div>
-          </div>
-
-          <q-select
-            v-model="addUsrenc"
-            :options="store.usuarios"
-            label="Responsable"
-            outlined
-            dense
-            hide-bottom
-          >
-            <template v-slot:prepend><q-icon name="mdi-account-tie" color="grey-5" /></template>
-          </q-select>
-        </q-card-section>
-
-        <ClienteDialog v-model="clienteDialog" @select="onClienteSelected" />
-
-        <q-card-section class="bg-grey-1 q-py-md q-px-lg">
-          <div class="row justify-end q-gutter-sm">
-            <q-btn label="Cancelar" flat v-close-popup @click="resetAdd" no-caps class="q-px-md" />
-            <q-btn label="Guardar" color="primary" unelevated :disabled="!addCodcli || !addUsrenc" :loading="adding" @click="saveAdd" no-caps class="q-px-lg" icon="mdi-check" />
-          </div>
-        </q-card-section>
-      </q-card>
-    </q-dialog>
   </div>
 </template>
 
@@ -195,6 +248,9 @@ const loading = ref(true)
 const asignaciones = ref([])
 const filter = ref('')
 const generando = ref(false)
+const showSelector = ref(false)
+const selectorTarget = ref(null)
+const selectorSearch = ref('')
 
 const filtered = computed(() => {
   if (!filter.value) return asignaciones.value
@@ -204,6 +260,26 @@ const filtered = computed(() => {
     (a.CLINOM || '').toLowerCase().includes(q)
   )
 })
+
+const filteredUsuarios = computed(() => {
+  if (!selectorSearch.value) return store.usuarios
+  const q = selectorSearch.value.toLowerCase()
+  return store.usuarios.filter(u => u.toLowerCase().includes(q))
+})
+
+function abrirSelector(row) {
+  selectorTarget.value = row
+  selectorSearch.value = ''
+  showSelector.value = true
+}
+
+function seleccionarUsuario(user) {
+  if (selectorTarget.value) {
+    selectorTarget.value.USRENC = user
+    guardarFila(selectorTarget.value)
+  }
+  showSelector.value = false
+}
 
 onMounted(async () => {
   await store.loadUsuarios()
@@ -244,18 +320,6 @@ function openAdd() { resetAdd(); showAdd.value = true }
 function resetAdd() { addCodcli.value = ''; addUsrenc.value = null }
 function openClienteBuscar() { clienteDialog.value = true }
 function onClienteSelected(row) { addCodcli.value = row.CLICVE }
-async function saveAdd() {
-  if (!addCodcli.value || !addUsrenc.value) return
-  adding.value = true
-  try {
-    await store.guardarAsignacion(addCodcli.value.trim(), addUsrenc.value)
-    $q.notify({ type: 'positive', message: 'Asignación guardada', timeout: 1500 })
-    showAdd.value = false
-    resetAdd()
-    await cargar()
-  } catch (err) { $q.notify({ type: 'negative', message: err.message })
-  } finally { adding.value = false }
-}
 
 const showImport = ref(false)
 const importFile = ref(null)
@@ -291,13 +355,27 @@ async function executeImport() {
 </script>
 
 <style lang="sass" scoped>
+.sticky-header
+  position: sticky
+  top: 0
+  z-index: 10
+  background: #fff
+  border-bottom: 1px solid #eee
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04)
+
 .list-container
-  border: 1px solid #e8e8e8
-  border-radius: 10px
+  background: #fff
+  border-radius: 14px
   overflow: hidden
 
 .list-row
+  display: flex
+  align-items: center
+  justify-content: space-between
+  padding: 14px 20px
   border-bottom: 1px solid #f0f0f0
+  cursor: pointer
+  transition: background 0.12s
 
   &:last-child
     border-bottom: none
@@ -305,35 +383,98 @@ async function executeImport() {
   &:hover
     background: rgba(210, 225, 134, 0.06)
 
-.list-row-inner
+.list-left
   display: flex
   align-items: center
-  gap: 12px
-  padding: 10px 16px
-
-.list-client-code
-  font-weight: 600
-  font-size: 13px
-  color: #415111
-  background: rgba(210, 225, 134, 0.3)
-  padding: 3px 10px
-  border-radius: 5px
-  white-space: nowrap
-  min-width: 70px
-  text-align: center
-
-.list-client-name
+  gap: 14px
   flex: 1
   min-width: 0
+
+.list-avatar
+  width: 40px
+  height: 40px
+  border-radius: 10px
+  background: #D2E186
+  display: flex
+  align-items: center
+  justify-content: center
+  font-weight: 700
+  font-size: 16px
+  color: #415111
+  flex-shrink: 0
+
+.list-info
+  min-width: 0
+
+.list-code
+  font-size: 14px
+  font-weight: 600
+  color: #415111
+
+.list-name
   font-size: 13px
-  color: #37474f
+  color: #90a4ae
+  margin-top: 1px
   overflow: hidden
   text-overflow: ellipsis
   white-space: nowrap
 
-.list-actions
+.list-right
   display: flex
   align-items: center
-  gap: 6px
   flex-shrink: 0
+
+.list-responsable
+  display: flex
+  align-items: center
+  font-size: 13px
+  font-weight: 500
+  color: #37474f
+  padding: 6px 12px
+  border: 1px solid #e8e8e8
+  border-radius: 8px
+  transition: border-color 0.15s
+  white-space: nowrap
+
+  &:hover
+    border-color: #D2E186
+
+// Selector dialog
+.selector-item
+  display: flex
+  align-items: center
+  padding: 10px 12px
+  border-radius: 8px
+  cursor: pointer
+  transition: background 0.1s
+
+  &:hover
+    background: rgba(210, 225, 134, 0.1)
+
+  &.selected
+    background: rgba(210, 225, 134, 0.15)
+
+.selector-avatar
+  width: 34px
+  height: 34px
+  border-radius: 50%
+  background: #D2E186
+  display: flex
+  align-items: center
+  justify-content: center
+  font-weight: 700
+  font-size: 14px
+  color: #415111
+  margin-right: 12px
+  flex-shrink: 0
+
+.selector-name
+  font-size: 14px
+  font-weight: 500
+  color: #37474f
+
+.selector-sub
+  font-size: 11px
+  color: #90a4ae
+  margin-top: 1px
 </style>
