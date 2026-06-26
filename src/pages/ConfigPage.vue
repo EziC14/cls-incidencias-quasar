@@ -1,81 +1,69 @@
 <template>
   <div style="position: relative; min-height: calc(100vh - 70px)">
     <template v-if="section === 'asignaciones'">
-      <div class="q-pa-lg" style="max-width: 1400px; margin: 0 auto">
-        <div class="row items-center q-mb-md">
-          <div>
-            <div class="text-h5 text-weight-bold">Asignaciones</div>
-            <div class="text-caption text-grey-7">Mapeo de clientes a responsable automático</div>
-          </div>
-          <q-space />
-          <q-btn label="Importar" color="secondary" icon="mdi-file-excel" unelevated @click="openImport" no-caps />
-          <q-btn label="Generar" color="accent" outline icon="mdi-auto-fix" @click="generarDesdeHistorial" :loading="generando" no-caps class="q-ml-sm" />
-          <q-btn flat icon="mdi-refresh" @click="cargar" class="q-ml-sm" />
+      <div class="q-pa-lg" style="max-width: 1000px; margin: 0 auto">
+        <div class="q-mb-lg">
+          <div class="text-h5 text-weight-bold">Asignaciones</div>
+          <div class="text-grey-7 q-mt-xs" style="font-size: 14px">Mapeo de clientes a responsable automático</div>
         </div>
 
-        <q-card flat bordered style="border-radius: 10px">
-          <q-card-section class="q-py-sm q-px-md bg-grey-1">
-            <div class="row items-center">
-              <q-input
-                v-model="filter"
-                outlined
-                dense
-                debounce="300"
-                placeholder="Buscar cliente..."
-                style="min-width: 280px"
-              >
-                <template v-slot:prepend><q-icon name="mdi-magnify" color="grey-5" /></template>
-              </q-input>
-              <q-space />
-              <div class="text-grey-6 text-caption">{{ asignaciones.length }} registro{{ asignaciones.length !== 1 ? 's' : '' }}</div>
-            </div>
-          </q-card-section>
-
-          <q-separator />
-
-          <q-table
-            :rows="asignaciones"
-            :columns="columns"
-            row-key="CODCLI"
-            :filter="filter"
-            flat
+        <div class="row items-center q-mb-lg q-gutter-sm">
+          <q-input
+            v-model="filter"
+            outlined
             dense
-            :rows-per-page-options="[25, 50, 100]"
-            :loading="loading"
-            hide-pagination
-            class="config-table"
+            debounce="300"
+            placeholder="Buscar cliente por código o nombre..."
+            style="min-width: 320px"
           >
-            <template v-slot:loading><q-inner-loading showing color="primary" /></template>
-            <template v-slot:no-data>
-              <div class="text-center q-py-lg text-grey-5">
-                <q-icon name="mdi-account-switch" size="48px" />
-                <div class="q-mt-sm text-weight-medium">No hay asignaciones</div>
+            <template v-slot:prepend><q-icon name="mdi-magnify" color="grey-4" /></template>
+          </q-input>
+          <q-space />
+          <q-btn label="Agregar" color="primary" icon="mdi-plus" unelevated @click="openAdd" no-caps />
+          <q-btn label="Importar" color="secondary" icon="mdi-file-excel" unelevated @click="openImport" no-caps />
+          <q-btn label="Generar" color="accent" outline icon="mdi-auto-fix" @click="generarDesdeHistorial" :loading="generando" no-caps />
+          <q-btn flat icon="mdi-refresh" @click="cargar" />
+        </div>
+
+        <div v-if="loading" class="flex flex-center q-py-xl">
+          <q-spinner color="primary" size="40px" />
+        </div>
+
+        <div v-else>
+          <div v-if="filtered.length === 0" class="flex flex-center q-py-xl text-grey-4">
+            <div class="text-center">
+              <q-icon name="mdi-account-switch" size="56px" />
+              <div class="q-mt-sm text-grey-6 text-weight-medium">No hay asignaciones</div>
+            </div>
+          </div>
+
+          <div class="list-container" v-if="filtered.length > 0">
+            <div
+              v-for="row in filtered"
+              :key="row.CODCLI"
+              class="list-row"
+            >
+              <div class="list-row-inner">
+                <div class="list-client-code">{{ row.CODCLI }}</div>
+                <div class="list-client-name">{{ row.CLINOM || '—' }}</div>
+                <div class="list-actions">
+                  <q-select
+                    v-model="row.USRENC"
+                    :options="store.usuarios"
+                    outlined
+                    dense
+                    placeholder="Responsable"
+                    style="min-width: 150px"
+                    @update:model-value="guardarFila(row)"
+                  />
+                  <q-btn flat dense round icon="mdi-delete-outline" color="negative" size="sm" @click="eliminarFila(row)" />
+                </div>
               </div>
-            </template>
-            <template v-slot:body-cell-CLINOM="props">
-              <td>
-                <div class="text-weight-medium">{{ props.row.CLINOM || '—' }}</div>
-              </td>
-            </template>
-            <template v-slot:body-cell-USRENC="props">
-              <td>
-                <q-select
-                  v-model="props.row.USRENC"
-                  :options="store.usuarios"
-                  outlined
-                  dense
-                  style="min-width: 140px"
-                  @update:model-value="guardarFila(props.row)"
-                />
-              </td>
-            </template>
-            <template v-slot:body-cell-acciones="props">
-              <td class="text-center">
-                <q-btn flat dense round icon="mdi-delete" color="negative" size="sm" @click="eliminarFila(props.row)" />
-              </td>
-            </template>
-          </q-table>
-        </q-card>
+            </div>
+          </div>
+
+          <div class="q-mt-md text-grey-5 text-caption">{{ filtered.length }} registro{{ filtered.length !== 1 ? 's' : '' }}</div>
+        </div>
       </div>
     </template>
 
@@ -131,6 +119,60 @@
         </q-card-section>
       </q-card>
     </q-dialog>
+
+    <q-dialog v-model="showAdd" persistent>
+      <q-card style="min-width: 400px; border-radius: 14px; overflow: hidden">
+        <q-card-section class="bg-primary text-white q-py-md">
+          <div class="row items-center">
+            <q-icon name="mdi-plus-circle" size="22px" class="q-mr-sm" />
+            <div class="col text-weight-bold text-body1">Nueva asignación</div>
+            <q-btn flat dense icon="mdi-close" v-close-popup @click="resetAdd" />
+          </div>
+        </q-card-section>
+
+        <q-card-section class="q-pa-lg q-gutter-md">
+          <div>
+            <div class="text-caption text-grey-7 q-mb-xs">Cliente</div>
+            <div class="row items-center no-wrap q-gutter-sm">
+              <div class="col">
+                <q-input
+                  v-model="addCodcli"
+                  outlined
+                  dense
+                  placeholder="Código o busque..."
+                  hide-bottom
+                  readonly
+                  @click="openClienteBuscar"
+                >
+                  <template v-slot:prepend><q-icon name="mdi-account" color="grey-5" /></template>
+                </q-input>
+              </div>
+              <q-btn icon="mdi-magnify" color="primary" unelevated dense @click="openClienteBuscar" />
+            </div>
+          </div>
+
+          <q-select
+            v-model="addUsrenc"
+            :options="store.usuarios"
+            label="Responsable"
+            outlined
+            dense
+            hide-bottom
+          >
+            <template v-slot:prepend><q-icon name="mdi-account-tie" color="grey-5" /></template>
+          </q-select>
+        </q-card-section>
+
+        <ClienteDialog v-model="clienteDialog" @select="onClienteSelected" />
+
+        <q-card-section class="bg-grey-1 q-py-md q-px-lg">
+          <div class="row justify-end q-gutter-sm">
+            <q-btn label="Cancelar" flat v-close-popup @click="resetAdd" no-caps class="q-px-md" />
+            <q-btn label="Guardar" color="primary" unelevated :disabled="!addCodcli || !addUsrenc" :loading="adding" @click="saveAdd" no-caps class="q-px-lg" icon="mdi-check" />
+          </div>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
   </div>
 </template>
 
@@ -140,6 +182,7 @@ import { useRoute } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { useIncidentStore } from 'stores/incident'
 import { useDraggable } from 'src/composables/useDraggable'
+import ClienteDialog from 'pages/Ayuda/ClienteDialog.vue'
 import * as XLSX from 'xlsx'
 
 const $q = useQuasar()
@@ -153,12 +196,14 @@ const asignaciones = ref([])
 const filter = ref('')
 const generando = ref(false)
 
-const columns = [
-  { name: 'CODCLI', label: 'Cód. Cliente', field: 'CODCLI', align: 'left', sortable: true, style: 'width: 120px' },
-  { name: 'CLINOM', label: 'Nombre Cliente', field: 'CLINOM', align: 'left', sortable: true },
-  { name: 'USRENC', label: 'Responsable', field: 'USRENC', align: 'left', sortable: true, style: 'width: 180px' },
-  { name: 'acciones', label: '', field: 'acciones', align: 'center', sortable: false, style: 'width: 50px' },
-]
+const filtered = computed(() => {
+  if (!filter.value) return asignaciones.value
+  const q = filter.value.toLowerCase()
+  return asignaciones.value.filter(a =>
+    (a.CODCLI || '').toLowerCase().includes(q) ||
+    (a.CLINOM || '').toLowerCase().includes(q)
+  )
+})
 
 onMounted(async () => {
   await store.loadUsuarios()
@@ -187,6 +232,29 @@ async function generarDesdeHistorial() {
     await cargar()
   } catch (err) { $q.notify({ type: 'negative', message: err.message })
   } finally { generando.value = false }
+}
+
+const showAdd = ref(false)
+const addCodcli = ref('')
+const addUsrenc = ref(null)
+const adding = ref(false)
+const clienteDialog = ref(false)
+
+function openAdd() { resetAdd(); showAdd.value = true }
+function resetAdd() { addCodcli.value = ''; addUsrenc.value = null }
+function openClienteBuscar() { clienteDialog.value = true }
+function onClienteSelected(row) { addCodcli.value = row.CLICVE }
+async function saveAdd() {
+  if (!addCodcli.value || !addUsrenc.value) return
+  adding.value = true
+  try {
+    await store.guardarAsignacion(addCodcli.value.trim(), addUsrenc.value)
+    $q.notify({ type: 'positive', message: 'Asignación guardada', timeout: 1500 })
+    showAdd.value = false
+    resetAdd()
+    await cargar()
+  } catch (err) { $q.notify({ type: 'negative', message: err.message })
+  } finally { adding.value = false }
 }
 
 const showImport = ref(false)
@@ -223,13 +291,49 @@ async function executeImport() {
 </script>
 
 <style lang="sass" scoped>
-.config-table
-  thead tr:first-child th
-    position: sticky
-    top: 0
-    z-index: 1
+.list-container
+  border: 1px solid #e8e8e8
+  border-radius: 10px
+  overflow: hidden
 
-  ::v-deep(.q-table__middle)
-    max-height: calc(100vh - 320px)
-    overflow-y: auto
+.list-row
+  border-bottom: 1px solid #f0f0f0
+
+  &:last-child
+    border-bottom: none
+
+  &:hover
+    background: rgba(210, 225, 134, 0.06)
+
+.list-row-inner
+  display: flex
+  align-items: center
+  gap: 12px
+  padding: 10px 16px
+
+.list-client-code
+  font-weight: 600
+  font-size: 13px
+  color: #415111
+  background: rgba(210, 225, 134, 0.3)
+  padding: 3px 10px
+  border-radius: 5px
+  white-space: nowrap
+  min-width: 70px
+  text-align: center
+
+.list-client-name
+  flex: 1
+  min-width: 0
+  font-size: 13px
+  color: #37474f
+  overflow: hidden
+  text-overflow: ellipsis
+  white-space: nowrap
+
+.list-actions
+  display: flex
+  align-items: center
+  gap: 6px
+  flex-shrink: 0
 </style>

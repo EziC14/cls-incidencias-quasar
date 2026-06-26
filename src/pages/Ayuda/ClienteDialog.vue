@@ -61,10 +61,10 @@ const columns = [
 async function buscar() {
   buscando.value = true
   try {
-    const q = codigo.value || nombre.value
+    const q = (codigo.value || nombre.value).toUpperCase()
     let sql = "SELECT CLICVE, CLINOM FROM SPEED400CS.TCLIE WHERE CLISIT = '01'"
     const params = []
-    if (q) { sql += " AND (CLINOM LIKE ? OR CLICVE LIKE ?)"; params.push(`%${q}%`, `%${q}%`) }
+    if (q) { sql += " AND (UCASE(CLINOM) LIKE ? OR UCASE(CLICVE) LIKE ?)"; params.push(`%${q}%`, `%${q}%`) }
     sql += " FETCH FIRST 100 ROWS ONLY"
     clientes.value = await window.electronAPI.dbQuery(sql, params, auth.usuario, auth.clave)
   } catch {}
