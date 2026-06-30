@@ -9,6 +9,7 @@
       </div>
       <q-space />
       <q-btn v-if="incidencia?.ESTADOINCD === '22'" label="Iniciar" color="accent" icon="mdi-play-circle" @click="iniciarAtencion" unelevated class="q-mr-sm" style="height: 36px; border-radius: 8px" no-caps />
+      <q-btn v-if="incidencia?.ESTADOINCD === '26'" label="Volver a Pendiente" color="orange" icon="mdi-undo" unelevated @click="reabrirIncidencia" class="q-mr-sm" style="height: 36px; border-radius: 8px" no-caps />
       <q-btn v-if="incidencia?.ESTADOINCD === '22' || incidencia?.ESTADOINCD === '26'" label="Cerrar" color="primary" icon="mdi-check-circle" @click="openCierre" unelevated class="q-mr-sm" style="height: 36px; border-radius: 8px" no-caps />
       <q-btn v-if="incidencia?.ESTADOINCD !== '22' && incidencia?.ESTADOINCD !== '26' && incidencia?.ESTADOINCD !== '99'" label="Ver Cierre" color="secondary" icon="mdi-check-circle" @click="openCierreInfo" unelevated class="q-mr-sm" style="height: 36px; border-radius: 8px" no-caps />
       <q-btn label="Más Info" color="grey-8" icon="mdi-information-outline" @click="openInfo" flat class="q-mr-sm" style="height: 36px; border-radius: 8px" no-caps />
@@ -375,6 +376,16 @@ async function iniciarAtencion() {
     $q.notify({ type: 'positive', message: 'Atención iniciada', timeout: 2000 })
   } catch (err) {
     $q.notify({ type: 'negative', message: 'Error al iniciar atención' })
+  }
+}
+
+async function reabrirIncidencia() {
+  try {
+    await store.reabrirIncidencia(id, auth.usuario)
+    incidencia.value.ESTADOINCD = '22'
+    $q.notify({ type: 'positive', message: 'Incidencia devuelta a Pendiente', timeout: 2000 })
+  } catch (err) {
+    $q.notify({ type: 'negative', message: 'Error al revertir estado' })
   }
 }
 

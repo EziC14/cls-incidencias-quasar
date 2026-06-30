@@ -20,8 +20,10 @@
               <template v-slot:prepend><q-icon name="mdi-magnify" color="grey-4" /></template>
             </q-input>
             <q-space />
+            <q-btn v-if="selectedAsignaciones.length > 0" :label="`Eliminar (${selectedAsignaciones.length})`" color="negative" unelevated icon="mdi-delete" @click="eliminarSeleccionados" no-caps />
             <q-btn label="Agregar" color="accent" unelevated icon="mdi-plus" @click="openAdd" no-caps />
             <q-btn label="Importar" color="secondary" unelevated icon="mdi-file-excel" @click="openImport" no-caps />
+            <q-btn flat dense icon="mdi-refresh" color="grey-6" @click="recargar" />
           </div>
         </div>
       </div>
@@ -41,8 +43,11 @@
           </div>
 
           <div v-else class="list-container">
-            <div v-for="row in filtered" :key="row.CODCLI" class="list-row" @click="abrirSelector(row)">
-              <div class="list-left">
+            <div v-for="row in filtered" :key="row.CODCLI" class="list-row">
+              <div class="list-select">
+                <q-checkbox v-model="selectedAsignaciones" :val="row.CODCLI" dense size="sm" color="accent" @click.stop />
+              </div>
+              <div class="list-left" @click="abrirSelector(row)">
                 <div class="list-avatar"><q-icon name="mdi-domain" size="20px" /></div>
                 <div class="list-info">
                   <div class="list-code">{{ row.CODCLI }}</div>
@@ -55,7 +60,6 @@
                   <q-icon name="mdi-account-tie" size="16px" color="grey-4" class="q-mr-xs" />
                   <span :class="{ 'text-grey-4': !row.USRENC }">{{ row.USRENC || 'Asignar responsable' }}</span>
                 </div>
-                <q-btn flat dense round icon="mdi-delete-outline" color="negative" size="sm" @click.stop="eliminarFila(row)" class="q-ml-sm" />
               </div>
             </div>
           </div>
@@ -66,18 +70,25 @@
     </template>
 
     <template v-else-if="section === 'permisos'">
-      <div class="q-pa-lg" style="max-width: 700px; margin: 0 auto">
-        <div class="q-mb-lg">
-          <div class="text-h5 text-weight-bold">Permisos</div>
-          <div class="text-grey-7 q-mt-xs" style="font-size: 14px">Control de acceso al panel de configuración</div>
-        </div>
+      <div class="sticky-header">
+        <div class="q-pa-lg" style="max-width: 1000px; margin: 0 auto">
+          <div class="q-mb-sm">
+            <div class="text-h5 text-weight-bold">Permisos</div>
+            <div class="text-grey-7 q-mt-xs" style="font-size: 14px">Control de acceso al panel de configuración</div>
+          </div>
 
-        <div class="row items-center q-mb-md q-gutter-sm">
-          <q-input v-model="permisoFilter" outlined dense debounce="300" placeholder="Buscar admin..." style="min-width: 240px">
-            <template v-slot:prepend><q-icon name="mdi-magnify" color="grey-4" /></template>
-          </q-input>
-          <q-btn label="Agregar admin" color="accent" unelevated icon="mdi-plus" @click="showAddPermiso = true" no-caps />
+          <div class="row items-center q-gutter-sm">
+            <q-input v-model="permisoFilter" outlined dense debounce="300" placeholder="Buscar admin..." style="min-width: 240px">
+              <template v-slot:prepend><q-icon name="mdi-magnify" color="grey-4" /></template>
+            </q-input>
+            <q-space />
+            <q-btn label="Agregar admin" color="accent" unelevated icon="mdi-plus" @click="showAddPermiso = true" no-caps />
+            <q-btn flat dense icon="mdi-refresh" color="grey-6" @click="recargar" />
+          </div>
         </div>
+      </div>
+
+      <div class="q-pa-lg" style="max-width: 1000px; margin: 0 auto">
 
         <div v-if="permisoLoading" class="flex flex-center q-py-xl">
           <q-spinner color="primary" size="40px" />
@@ -337,6 +348,7 @@ const loading = ref(true)
 const asignaciones = ref([])
 const filter = ref('')
 const generando = ref(false)
+const selectedAsignaciones = ref([])
 const showSelector = ref(false)
 const selectorTarget = ref(null)
 const selectorSearch = ref('')
@@ -385,6 +397,10 @@ watch(section, async (val) => {
 })
 
 async function cargar() { asignaciones.value = await store.listarAsignaciones() }
+async function recargar() {
+  if (section.value === 'permisos') await cargarPermisos()
+  else await cargar()
+}
 async function guardarFila(row) {
   await store.guardarAsignacion(row.CODCLI, row.USRENC)
   $q.notify({ type: 'positive', message: 'Guardado', timeout: 1500 })
@@ -395,6 +411,19 @@ async function eliminarFila(row) {
       await store.eliminarAsignacion(row.CODCLI)
       asignaciones.value = asignaciones.value.filter(a => a.CODCLI !== row.CODCLI)
       $q.notify({ type: 'positive', message: 'Eliminado', timeout: 1500 })
+    })
+}
+
+async function eliminarSeleccionados() {
+  const n = selectedAsignaciones.value.length
+  $q.dialog({ title: 'Eliminar', message: `¿Eliminar ${n} asignacion${n !== 1 ? 'es' : ''}?`, cancel: true, persistent: true })
+    .onOk(async () => {
+      for (const cod of selectedAsignaciones.value) {
+        await store.eliminarAsignacion(cod)
+      }
+      asignaciones.value = asignaciones.value.filter(a => !selectedAsignaciones.value.includes(a.CODCLI))
+      selectedAsignaciones.value = []
+      $q.notify({ type: 'positive', message: `${n} eliminada${n !== 1 ? 's' : ''}`, timeout: 2000 })
     })
 }
 // ---- Permisos ----
@@ -539,6 +568,12 @@ async function executeImport() {
 
   &:hover
     background: rgba(210, 225, 134, 0.06)
+
+.list-select
+  flex-shrink: 0
+  padding: 0 12px 0 8px
+  display: flex
+  align-items: center
 
 .list-left
   display: flex

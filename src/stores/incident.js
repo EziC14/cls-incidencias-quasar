@@ -207,6 +207,13 @@ export const useIncidentStore = defineStore('incident', {
       )
       return { ok: true }
     },
+    async reabrirIncidencia(id, usuario) {
+      await this._query(
+        "UPDATE CLS.TINCIDENCIAH SET ESTADOINCD = '22', USUARIOMOD = ?, FECHAMOD = TO_CHAR(CURRENT DATE, 'YYYYMMDD') WHERE ID = ? AND ESTADOINCD = '26'",
+        [usuario, id]
+      )
+      return { ok: true }
+    },
     async cerrarIncidencia(body) {
       const t = (v, len) => (v == null ? '' : String(v)).slice(0, len)
       await this._query(
@@ -367,6 +374,10 @@ export const useIncidentStore = defineStore('incident', {
         try {
           if (!r.codcli || !r.usrenc) {
             err++; errores.push(`Fila ${i+2}: CODCLI y USRENC requeridos`); continue
+          }
+          const existe = await this._query("SELECT COUNT(*) AS C FROM SPEED400CS.TCLIE WHERE CLICVE = ?", [r.codcli])
+          if (Number(existe[0].C) === 0) {
+            err++; errores.push(`Fila ${i+2}: Cliente ${r.codcli} no existe en TCLIE`); continue
           }
           await this.guardarAsignacion(r.codcli, r.usrenc)
           ok++
